@@ -8,6 +8,7 @@ import { PairData } from "./types";
 import { processTrendingPairs } from "./bot/processTrendingPairs";
 import { getNowTimestamp, getSecondsElapsed } from "./utils/time";
 import { syncToTrend } from "./vars/trending";
+import { getEthPrice } from "./vars/ethPrice";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -20,11 +21,11 @@ if (!DEX_URL) {
 
 (async function () {
   teleBot.start();
-  await Promise.all([syncToTrend()]);
   log("Telegram bot setup");
   initiateBotCommands();
   initiateCallbackQueries();
 
+  await Promise.all([syncToTrend(), getEthPrice()]);
   const ws = new WebSocket(DEX_URL, { headers: wssHeaders });
 
   ws.on("open", function open() {
@@ -47,4 +48,8 @@ if (!DEX_URL) {
       fetchedAt = getNowTimestamp();
     }
   });
+
+  setInterval(() => {
+    getEthPrice();
+  }, 60 * 1e3);
 })();

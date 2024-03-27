@@ -7,4 +7,6 @@ export const {
   FIREBASE_PREFIX,
   DEX_URL,
   FIREBASE_KEY,
+  RPC_URL,
+  ENCRYPTION_KEY,
 } = process.env;

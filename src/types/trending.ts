@@ -12,6 +12,6 @@ export interface StoredToTrend {
   sentTo: string;
   amount: number;
   paidAt: Timestamp;
-  expiresAt: Timestamp;
+  expiresAt?: Timestamp;
   initiatedBy: string;
 }

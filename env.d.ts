@@ -6,6 +6,8 @@ declare global {
       FIREBASE_PREFIX: string | undefined;
       DEX_URL: string | undefined;
       FIREBASE_KEY: string | undefined;
+      RPC_URL: string | undefined;
+      ENCRYPTION_KEY: string | undefined;
     }
   }
 }
