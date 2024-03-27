@@ -48,7 +48,7 @@ export async function selectTrendingSlot(ctx: CallbackQueryContext<Context>) {
 
   const text = "Select the trending slot you wish for your token to trend at";
   let keyboard = new InlineKeyboard();
-  const takenTrendSlots = toTrendTokens.map(({ trendSlot }) => trendSlot);
+  const takenTrendSlots = toTrendTokens.map(({ slot }) => slot);
 
   for (const [key, price] of trendPrices[duration].entries()) {
     const slot = key + 1;

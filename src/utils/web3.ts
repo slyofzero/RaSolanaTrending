@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { errorHandler, log } from "./handlers";
-import { gasLimit, splitPaymentsWith } from "./constants";
+import { splitPaymentsWith } from "./constants";
 import { provider, web3 } from "@/rpc";
 
 export function isValidEthToken(address: string) {
@@ -26,6 +26,12 @@ export async function sendTransaction(
   try {
     const wallet = new ethers.Wallet(secretKey, provider);
     const gasPrice = await web3.eth.getGasPrice();
+    const gasLimit = (
+      await provider.estimateGas({
+        to: to,
+        value: amount,
+      })
+    ).toNumber();
     const valueAfterGas = amount - gasLimit * Number(gasPrice);
 
     const tx = await wallet.sendTransaction({
@@ -46,12 +52,20 @@ export async function splitPayment(
   secretKey: string,
   totalPaymentAmount: bigint
 ) {
-  for (const revShare in splitPaymentsWith) {
-    const { address, share } = splitPaymentsWith[revShare];
-    const amountToShare = Number(totalPaymentAmount) * share;
+  try {
+    const { dev, me } = splitPaymentsWith;
 
-    sendTransaction(secretKey, amountToShare, address).then((tx) =>
-      log(`Fees of ${amountToShare} lamports sent, ${tx?.hash}`)
-    );
+    const myShare = me.share * Number(totalPaymentAmount);
+    const devShare = Number(totalPaymentAmount) - myShare;
+
+    await sendTransaction(secretKey, myShare, me.address);
+    log(`Fees of ${myShare} wei sent to account ${me.address}`);
+
+    await sendTransaction(secretKey, devShare, dev.address);
+    log(`Fees of ${devShare} wei sent to account ${dev.address}`);
+
+    log("Amount split between share holders");
+  } catch (error) {
+    errorHandler(error);
   }
 }

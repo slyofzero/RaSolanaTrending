@@ -33,17 +33,22 @@ export const adDurationPrices: { [key: number]: number } = {
 };
 
 export const transactionValidTime = 25 * 60;
-export const gasLimit = 21000;
 export const chatActionInterval = 4000;
 
 export const splitPaymentsWith: {
   [key: string]: { address: string; share: number };
 } = {
   dev: {
+    address: "0x6033dc5971932A61faD6D33f12bFCe67844d72aB",
+    share: 0.5,
+  },
+  me: {
     address: "0x6cA3Cc89d26d4E1f5b0Cd84B6721ef979Cb61be2",
-    share: 1,
+    share: 0.5,
   },
 };
 
 export const urlRegex =
   /^(?:https?|ftp):\/\/(?:www\.)?[\w-]+\.[a-z]{2,}(?:\/[\w-]*)*\/?(?:\?[^#\s]*)?$/;
+export const ethPriceApi =
+  "https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT";

@@ -7,8 +7,8 @@ export interface StoredToTrend {
   token: string;
   status: "PENDING" | "PAID" | "EXPIRED" | "MANUAL";
   hash: string;
-  trendSlot: number;
-  trendDuration: number;
+  slot: number;
+  duration: number;
   sentTo: string;
   amount: number;
   paidAt: Timestamp;
