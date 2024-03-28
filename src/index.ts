@@ -9,6 +9,7 @@ import { processTrendingPairs } from "./bot/processTrendingPairs";
 import { getNowTimestamp, getSecondsElapsed } from "./utils/time";
 import { syncToTrend } from "./vars/trending";
 import { updateTrendingMessage } from "./bot/updateTrendingMessage";
+import { trackTokenMC } from "./bot/trackTokenMC";
 // import { decrypt } from "./utils/cryptography";
 // import { sendTransaction, splitPayment } from "./utils/web3";
 // import { provider, web3 } from "./rpc";
@@ -71,6 +72,7 @@ if (!DEX_URL) {
         fetchedAt = getNowTimestamp();
         await processTrendingPairs(pairs);
         updateTrendingMessage();
+        trackTokenMC();
       }
     });
   }
