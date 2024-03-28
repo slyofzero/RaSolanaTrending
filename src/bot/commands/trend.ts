@@ -24,6 +24,14 @@ export async function selectTrendingDuration(ctx: CommandContext<Context>) {
     return ctx.reply("Please enter a proper token address");
   }
 
+  const storedTokenData = toTrendTokens.find(
+    ({ token: storedToken }) => storedToken === token
+  );
+  if (storedTokenData) {
+    const { slot } = storedTokenData;
+    return ctx.reply(`Token ${token} is already trending at rank ${slot}`);
+  }
+
   trendingState[chatId] = { token };
   delete userState[chatId];
 

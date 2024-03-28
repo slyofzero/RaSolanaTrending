@@ -124,7 +124,7 @@ Address - \`${account}\``;
   } catch (error) {
     errorHandler(error);
     ctx.reply(
-      "An error occurred. Please don't follow with the payment and instead use /advertise again in the same way you used earlier."
+      "An error occurred. Please don't follow with the payment and instead use /trend again in the same way you used earlier."
     );
 
     return false;
@@ -193,14 +193,14 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
           `Checking for subscription payment, Attempt - ${attempt_number + 1}`
         );
 
-        // Checking if payment was made
-        const balance = await web3.eth.getBalance(account.address);
+        // // Checking if payment was made
+        // const balance = await web3.eth.getBalance(account.address);
 
-        if (balance < Number(web3.utils.toWei(amount, "ether"))) {
-          log(`Transaction amount doesn't match`);
-          await sleep(30000);
-          continue attemptsCheck;
-        }
+        // if (balance < Number(web3.utils.toWei(amount, "ether"))) {
+        //   log(`Transaction amount doesn't match`);
+        //   await sleep(30000);
+        //   continue attemptsCheck;
+        // }
 
         const logText = `Transaction ${hash} for trend verified with payment of ${amount} ETH`;
         log(logText);
@@ -241,15 +241,15 @@ Address Payment Received at - ${sentTo}`;
           .catch((e) => errorHandler(e));
 
         // Splitting payment
-        splitPayment(secretKey, balance)
-          .then(() => {
-            updateDocumentById({
-              updates: { locked: false },
-              collectionName: "accounts",
-              id: accountID || "",
-            });
-          })
-          .catch((e) => errorHandler(e));
+        // splitPayment(secretKey, balance)
+        // .then(() => {
+        updateDocumentById({
+          updates: { locked: false },
+          collectionName: "accounts",
+          id: accountID || "",
+        });
+        // })
+        // .catch((e) => errorHandler(e));
 
         return true;
       } catch (error) {

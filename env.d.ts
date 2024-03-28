@@ -8,6 +8,9 @@ declare global {
       FIREBASE_KEY: string | undefined;
       RPC_URL: string | undefined;
       ENCRYPTION_KEY: string | undefined;
+      TOKEN_DATA_URL: string | undefined;
+      CHANNEL_ID: string | undefined;
+      PINNED_MSG_ID: string | undefined;
     }
   }
 }

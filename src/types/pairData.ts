@@ -1,72 +1,77 @@
-interface Token {
-  address: string;
-  name: string;
-  symbol: string;
-}
-
-interface TransactionStats {
-  buys: number;
-  sells: number;
-}
-
-interface Txns {
-  m5: TransactionStats;
-  h1: TransactionStats;
-  h6: TransactionStats;
-  h24: TransactionStats;
-}
-
-interface Volume {
-  m5: number;
-  h1: number;
-  h6: number;
-  h24: number;
-}
-
-interface PriceChange {
-  m5: number;
-  h1: number;
-  h6: number;
-  h24: number;
-}
-
-interface Liquidity {
-  usd: number;
-  base: number;
-  quote: number;
-}
-
-interface Profile {
-  eti: boolean;
-  header: boolean;
-  website: boolean;
-  twitter: boolean;
-  linkCount: number;
-  imgKey: string;
-}
-
-export interface PairData {
+export type PairData = {
   chainId: string;
   dexId: string;
+  url: string;
   pairAddress: string;
   baseToken: Token;
   quoteToken: Token;
-  quoteTokenSymbol: string;
-  price: string;
+  priceNative: string;
   priceUsd: string;
-  txns: Txns;
-  buyers: Volume;
-  sellers: Volume;
-  makers: Volume;
-  volume: Volume;
-  volumeBuy: Volume;
-  volumeSell: Volume;
-  priceChange: PriceChange;
-  liquidity: Liquidity;
-  marketCap: number;
+  txns: TransactionData;
+  volume: VolumeData;
+  priceChange: PriceChangeData;
+  liquidity: LiquidityData;
+  fdv: number;
   pairCreatedAt: number;
-  eti: boolean;
-  profile: Profile;
-  c: string;
-  a: string;
-}
+  info: PairInfo;
+  labels?: string[];
+};
+
+type Token = {
+  address: string;
+  name: string;
+  symbol: string;
+};
+
+type TransactionData = {
+  m5: TransactionCount;
+  h1: TransactionCount;
+  h6: TransactionCount;
+  h24: TransactionCount;
+};
+
+type TransactionCount = {
+  buys: number;
+  sells: number;
+};
+
+type VolumeData = {
+  h24: number;
+  h6: number;
+  h1: number;
+  m5: number;
+};
+
+type PriceChangeData = {
+  m5: number;
+  h1: number;
+  h6: number;
+  h24: number;
+};
+
+type LiquidityData = {
+  usd: number;
+  base: number;
+  quote: number;
+};
+
+type PairInfo = {
+  imageUrl: string;
+  websites: Website[];
+  socials: Social[];
+};
+
+type Website = {
+  label: string;
+  url: string;
+};
+
+type Social = {
+  type: string;
+  url: string;
+};
+
+export type PairsData = {
+  schemaVersion: string;
+  pairs: PairData[];
+};

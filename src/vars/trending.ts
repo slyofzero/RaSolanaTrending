@@ -9,10 +9,12 @@ export function setTopTrendingTokens(newTrendingTokens: TrendingTokens) {
 }
 
 export async function syncToTrend() {
-  toTrendTokens = await getDocument<StoredToTrend>({
+  const newToTrendTokens = await getDocument<StoredToTrend>({
     collectionName: "to_trend",
     queries: [["status", "in", ["PAID", "MANUAL"]]],
   });
+
+  toTrendTokens = newToTrendTokens.sort((a, b) => a.slot - b.slot);
 
   log(`Synced to_trend data`);
 }

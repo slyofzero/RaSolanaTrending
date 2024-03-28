@@ -52,3 +52,5 @@ export const urlRegex =
   /^(?:https?|ftp):\/\/(?:www\.)?[\w-]+\.[a-z]{2,}(?:\/[\w-]*)*\/?(?:\?[^#\s]*)?$/;
 export const ethPriceApi =
   "https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT";
+
+export const DEXSCREEN_URL = "https://dexscreener.com";

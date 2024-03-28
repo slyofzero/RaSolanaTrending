@@ -9,4 +9,9 @@ export const {
   FIREBASE_KEY,
   RPC_URL,
   ENCRYPTION_KEY,
+  TOKEN_DATA_URL,
+  CHANNEL_ID,
 } = process.env;
+
+export const BOT_URL = `https://t.me/${BOT_USERNAME}`;
+export const PINNED_MSG_ID = Number(process.env.PINNED_MSG_ID);
