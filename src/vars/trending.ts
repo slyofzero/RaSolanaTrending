@@ -3,8 +3,12 @@ import { StoredToTrend, TrendingTokens } from "@/types/trending";
 import { log } from "@/utils/handlers";
 
 export let trendingTokens: TrendingTokens = [];
+export let previouslyTrendingTokens: string[] = [];
+
+// Related to paid trending tokens
 export let toTrendTokens: StoredToTrend[] = [];
 export function setTopTrendingTokens(newTrendingTokens: TrendingTokens) {
+  previouslyTrendingTokens = trendingTokens.map(([token]) => token);
   trendingTokens = newTrendingTokens;
 }
 
