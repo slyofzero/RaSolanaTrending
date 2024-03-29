@@ -6,14 +6,14 @@ export const wssHeaders = {
   Pragma: "no-cache",
   "Cache-Control": "no-cache",
   "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0",
   Upgrade: "websocket",
   Origin: "https://dexscreener.com",
   "Sec-WebSocket-Version": "13",
   "Accept-Encoding": "gzip, deflate, br",
-  "Accept-Language": "en-US,en;q=0.9",
-  "Sec-WebSocket-Key": "oEhi9FPY7B8xeU+7/6jGyw==",
-  "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits",
+  "Accept-Language": "en-US,en;q=0.5",
+  "Sec-WebSocket-Key": "M5uJvoUZgvRAXcms5eBsnw==",
+  "Sec-WebSocket-Extensions": "permessage-deflate",
 };
 
 export const trendPrices: { [key: number]: number[] } = {
