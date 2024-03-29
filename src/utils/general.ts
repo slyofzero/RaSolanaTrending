@@ -70,3 +70,7 @@ export function generateRandomID() {
 export function isValidUrl(url: string) {
   return urlRegex.test(url);
 }
+
+export function floatToBigInt(num: number) {
+  return BigInt(Math.floor(num));
+}

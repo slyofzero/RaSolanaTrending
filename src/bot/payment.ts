@@ -5,7 +5,7 @@ import {
   updateDocumentById,
 } from "@/firebase";
 import { web3 } from "@/rpc";
-import { StoredAdvertisement } from "@/types";
+import { StoredAdvertisement, StoredReferral } from "@/types";
 import { StoredAccount } from "@/types/accounts";
 import { StoredToTrend } from "@/types/trending";
 import { apiFetcher } from "@/utils/api";
@@ -17,6 +17,7 @@ import {
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
+import { NETWORK_NAME } from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -100,7 +101,9 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
     let text = `You have selected ${slotText} slot ${slot} for ${duration} hours.
 The total cost - \`${roundUpToDecimalPlace(priceEth, 6)}\` ETH
 
-Send the bill amount to the below address within 20 minutes, starting from this message generation. Once paid, click on "I have paid" to verify payment. If 20 minutes have already passed then please restart using /${commandToRedo}.
+Send the bill amount to the below address within 20 minutes, starting from this message generation. Once paid, click on "I have paid" to verify payment. If 20 minutes have already passed then please restart using ${commandToRedo}. 
+
+*Only send ETH on ${NETWORK_NAME}*, and no other network
 
 Address - \`${account}\``;
 
@@ -111,6 +114,11 @@ Address - \`${account}\``;
     );
 
     ctx.reply(text, { parse_mode: "MarkdownV2", reply_markup: keyboard });
+
+    const [referralData] = await getDocument<StoredReferral>({
+      collectionName: "referral",
+      queries: [["userId", "==", chatId]],
+    });
 
     const collectionName = isTrendingPayment ? "to_trend" : "advertisements";
     let dataToAdd: StoredToTrend | StoredAdvertisement = {
@@ -124,6 +132,10 @@ Address - \`${account}\``;
       initiatedBy: chatId,
       username,
     } as StoredToTrend | StoredAdvertisement;
+
+    if (referralData.referrer) {
+      dataToAdd.referrer = referralData.referrer;
+    }
 
     if (isTrendingPayment) {
       const { token } = trendingState[chatId];
@@ -188,7 +200,8 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
       );
     }
 
-    const { paidAt, sentTo, amount, duration, slot } = trendingPayment;
+    const { paidAt, sentTo, amount, duration, slot, referrer } =
+      trendingPayment;
     const timeSpent = getSecondsElapsed(paidAt.seconds);
 
     if (timeSpent > transactionValidTime) {
@@ -272,7 +285,7 @@ Address Payment Received at - ${sentTo}`;
           .catch((e) => errorHandler(e));
 
         // Splitting payment
-        splitPayment(secretKey, balance)
+        splitPayment(secretKey, balance, referrer)
           .then(() => {
             updateDocumentById({
               updates: { locked: false },

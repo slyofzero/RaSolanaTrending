@@ -1,8 +1,15 @@
 import { ethers } from "ethers";
 import { errorHandler, log } from "./handlers";
-import { residueEth, splitPaymentsWith } from "./constants";
+import {
+  referralCommisionFee,
+  residueEth,
+  splitPaymentsWith,
+} from "./constants";
 import { provider, web3 } from "@/rpc";
 import { sleep } from "./time";
+import { getDocument } from "@/firebase";
+import { StoredReferral } from "@/types";
+import { floatToBigInt } from "./general";
 
 export function isValidEthAddress(address: string) {
   const regex = /^0x[a-fA-F0-9]{40}$/;
@@ -47,6 +54,8 @@ export async function sendTransaction(
         gasLimit: gasLimit,
       });
 
+      log(`Txn Hash - ${tx.hash}`);
+
       return tx;
     } catch (error) {
       log(`No transaction for ${amount} to ${to}, at attempt - ${attempt + 1}`);
@@ -59,21 +68,50 @@ export async function sendTransaction(
 
 export async function splitPayment(
   secretKey: string,
-  totalPaymentAmount: bigint
+  totalPaymentAmount: bigint,
+  referrer?: number
 ) {
   try {
-    const { dev, me } = splitPaymentsWith;
+    let referralAddress = "";
+    if (referrer) {
+      const [referralData] = await getDocument<StoredReferral>({
+        collectionName: "referral",
+        queries: [["referrer", "==", referrer]],
+      });
 
-    const myShare = BigInt(Math.floor(me.share * Number(totalPaymentAmount)));
-    const devShare = totalPaymentAmount - myShare;
+      if (referralData.address) referralAddress = referralData.address;
+    }
 
-    sendTransaction(secretKey, myShare, me.address).then(() =>
-      log(`Fees of ${myShare} wei sent to account ${me.address}`)
-    );
+    const { dev, main, revenue } = splitPaymentsWith;
 
-    sendTransaction(secretKey, devShare, dev.address, true).then(() =>
-      log(`Fees of ${devShare} wei sent to account ${dev.address}`)
-    );
+    // ------------------------------ Calculating shares ------------------------------
+    const devShare = floatToBigInt(dev.share * Number(totalPaymentAmount));
+    const shareLeft = totalPaymentAmount - devShare;
+
+    const referralShare = referralAddress
+      ? floatToBigInt(Number(shareLeft) * referralCommisionFee)
+      : BigInt(0);
+    const revenueShare = floatToBigInt(Number(shareLeft) * revenue.share);
+    const mainShare = shareLeft - (referralShare + revenueShare);
+
+    // ------------------------------ Txns ------------------------------
+    const devTx = await sendTransaction(secretKey, devShare, dev.address);
+    if (devTx) log(`Dev share ${devShare} sent ${devTx.hash}`);
+
+    if (referralAddress) {
+      const refTx = await sendTransaction(
+        secretKey,
+        referralShare,
+        referralAddress
+      );
+      if (refTx) log(`Referral Share ${referralShare} sent ${refTx.hash}`);
+    }
+
+    const revTx = await sendTransaction(secretKey, revenueShare, revenue.address); // prettier-ignore
+    if (revTx) log(`Revenue share ${revenueShare} sent ${revTx.hash}`);
+
+    const mainTx = await sendTransaction(secretKey, mainShare, main.address, true); // prettier-ignore
+    if (mainTx) log(`Main share ${mainShare} sent ${mainTx.hash}`);
   } catch (error) {
     errorHandler(error);
   }

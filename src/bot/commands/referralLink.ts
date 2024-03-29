@@ -15,7 +15,10 @@ import {
   InlineKeyboard,
 } from "grammy";
 
-export async function referralLink(ctx: CommandContext<Context>) {
+export async function referralLink(
+  ctx: CommandContext<Context>,
+  referrer?: number
+) {
   const { id: chatId } = ctx.chat;
   const { match } = ctx;
   const messageText = ctx.message?.text;
@@ -26,60 +29,73 @@ export async function referralLink(ctx: CommandContext<Context>) {
     queries: [["userId", "==", chatId]],
   });
 
-  // To check for duplicate referral addresses
-  if (address && isValidEthAddress(address)) {
-    const addressInUse = await referralAddressRepeated(address);
-    if (addressInUse) {
-      const personUsingAddress =
-        addressInUse.userId === chatId ? "you" : "someone else";
-
-      return ctx.reply(
-        `The address \`${address}\` is already in use by ${personUsingAddress}\\. Please pass a different address\\.`,
-        { parse_mode: "MarkdownV2" }
-      );
-    }
+  if (referrer === chatId) {
+    return ctx.reply("You can't use your own referral link");
   }
 
   // If not referral data then add one, if there is and address was passed as match then update the data
   if (!referralLinkData) {
-    if (messageText?.startsWith("/")) {
-      userState[chatId] = "referralAddress";
+    referralLinkData = { userId: chatId };
+    if (referrer) referralLinkData.referrer = referrer;
 
-      return ctx.reply(
-        "You don't have a referral link yet. Pass a Base ETH address in the next message. You will receive your referral fees in that address."
-      );
-    } else if (address) {
-      if (messageText && isValidEthAddress(messageText)) {
-        referralLinkData = { userId: chatId, address };
+    addDocument<StoredReferral>({
+      collectionName: "referral",
+      data: referralLinkData,
+    }).then(() => log(`Referral data added for ${chatId}`));
 
-        addDocument<StoredReferral>({
-          collectionName: "referral",
-          data: referralLinkData,
-        }).then(() => log(`Referral data added for ${chatId}`));
+    return;
+  } else if (messageText === "/referral_link" && !referralLinkData.address) {
+    userState[chatId] = "referralAddress";
+
+    return ctx.reply(
+      "You don't have a referral link yet. Pass a Base ETH address in the next message. You will receive your referral fees in that address."
+    );
+  }
+  // Making sure the message wasn't a command use
+  else if (address && !address.startsWith("/")) {
+    if (isValidEthAddress(address)) {
+      // To check for duplicate referral addresses
+      const addressInUse = await referralAddressRepeated(address);
+      if (addressInUse) {
+        const personUsingAddress =
+          addressInUse.userId === chatId ? "you" : "someone else";
 
         return ctx.reply(
-          "You don't have a referral link yet. Pass a Base ETH address in the next message. You will receive your referral fees in that address."
+          `The address \`${address}\` is already in use by ${personUsingAddress}\\. Please pass a different address\\.`,
+          { parse_mode: "MarkdownV2" }
         );
       }
-    }
-  } else {
-    if (isValidEthAddress(match)) {
+
       updateDocumentById<StoredReferral>({
         collectionName: "referral",
         updates: { address },
         id: referralLinkData.id || "",
       }).then(() => log(`Referral address updated for ${chatId}`));
 
-      return ctx.reply(`Your referral address was updated to \`${address}\``, {
-        parse_mode: "MarkdownV2",
-      });
+      delete userState[chatId];
+
+      if (match) {
+        return ctx.reply(`Referral fee address updated to \`${address}\``, {
+          parse_mode: "MarkdownV2",
+        });
+      }
+    }
+    // This check here because if a user use's a referral link even after theirs is already set, the refferer comes as `match`
+    else if (!referrer) {
+      return ctx.reply("Please pass a valid Base ETH address");
+    }
+    // So the user from the above case doesn't get both the /start and /referral_link msg
+    else {
+      return;
     }
   }
 
   const { referralText, address: storedAddress } = referralLinkData;
   const commisionShare = referralCommisionFee * 100;
   const referral_link = `${BOT_URL}?start=${referralText || chatId}`;
-  const text = `Your referral link is - \n\`${referral_link}\`\n\nAny payments the user that is introduced to our bot using your link makes would entitle you to ${commisionShare}% of that amount and would be sent to the wallet address mentioned below. Anytime a purchase is made, you'll be notified with the fees that was sent to your wallet.\n\nWallet - \`${storedAddress}\`\n\nTo change wallet addres do-\n/referral\\_link _wallet address_`;
+  const text = `Your referral link is - \n\`${referral_link}\`\n\nAny payments the user that is introduced to our bot using your link makes would entitle you to ${commisionShare}% of that amount and would be sent to the wallet address mentioned below. Anytime a purchase is made, you'll be notified with the fees that was sent to your wallet.\n\nWallet - \`${
+    storedAddress || address
+  }\`\n\nTo change wallet addres do-\n/referral\\_link _wallet address_`;
 
   const keyboard = new InlineKeyboard().text(
     "Set custom link",

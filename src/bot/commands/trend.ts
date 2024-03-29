@@ -1,4 +1,7 @@
+import { PairsData } from "@/types";
+import { apiFetcher } from "@/utils/api";
 import { trendPrices } from "@/utils/constants";
+import { TOKEN_DATA_URL } from "@/utils/env";
 import { isValidEthAddress } from "@/utils/web3";
 import { trendingState, userState } from "@/vars/state";
 import { toTrendTokens, trendingTokens } from "@/vars/trending";
@@ -24,6 +27,11 @@ export async function selectTrendingDuration(ctx: CommandContext<Context>) {
     return ctx.reply("Please enter a proper token address");
   } else if (trendingTokens.some(([storedToken]) => storedToken === token)) {
     return ctx.reply(`Token ${token} is already trending`);
+  }
+
+  const tokenData = await apiFetcher<PairsData>(`${TOKEN_DATA_URL}/${token}`);
+  if (!tokenData.data.pairs) {
+    return ctx.reply("The address you entered has no pairs on Base");
   }
 
   const storedTokenData = toTrendTokens.find(

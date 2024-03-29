@@ -12,6 +12,7 @@ import {
   setCustomLink,
   setReferralText,
 } from "./commands/referralLink";
+import { log } from "@/utils/handlers";
 
 const steps: { [key: string]: any } = {
   toTrend: selectTrendingDuration,
@@ -43,6 +44,6 @@ export async function executeStep(
   if (stepFunction) {
     stepFunction(ctx);
   } else {
-    ctx.reply("No step function defined");
+    log(`No step function for ${queryCategory} ${userState[chatId]}`);
   }
 }

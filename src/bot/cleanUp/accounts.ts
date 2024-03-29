@@ -15,9 +15,9 @@ export async function unlockUnusedAccounts() {
     try {
       const decryptedKey = decrypt(secretKey);
       const wallet = new ethers.Wallet(decryptedKey, provider);
-      const balance = (await wallet.getBalance()).toNumber();
+      const balance = (await wallet.getBalance()).toBigInt();
 
-      if (balance === 0) {
+      if (balance === BigInt(0)) {
         updateDocumentById({
           updates: { locked: false, lockedAt: null },
           collectionName: "accounts",

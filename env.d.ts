@@ -11,6 +11,7 @@ declare global {
       TOKEN_DATA_URL: string | undefined;
       CHANNEL_ID: string | undefined;
       PINNED_MSG_ID: string | undefined;
+      NETWORK_NAME: string | undefined;
     }
   }
 }
