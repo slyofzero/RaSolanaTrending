@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { FIREBASE_PREFIX } from "./env";
 
 export const firebaseCollectionPrefix = `_${FIREBASE_PREFIX}`;
@@ -21,12 +22,7 @@ export const trendPrices: { [key: number]: number[] } = {
   12: [1050, 875, 700, 560, 500, 420, 350, 280, 200, 120],
 };
 
-export const adSlotPrices: { [key: number]: number } = {
-  1: 100,
-  2: 50,
-};
-
-export const adDurationPrices: { [key: number]: number } = {
+export const adPrices: { [key: number]: number } = {
   4: 300,
   12: 750,
   24: 1250,
@@ -39,7 +35,7 @@ export const splitPaymentsWith: {
   [key: string]: { address: string; share: number };
 } = {
   dev: {
-    address: "0x6033dc5971932A61faD6D33f12bFCe67844d72aB",
+    address: "0x6cA3Cc89d26d4E1f5b0Cd84B6721ef979Cb61be2",
     share: 0.5,
   },
   me: {
@@ -54,3 +50,4 @@ export const ethPriceApi =
   "https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT";
 
 export const DEXSCREEN_URL = "https://dexscreener.com";
+export const residueEth = ethers.utils.parseEther("0.000035").toBigInt();

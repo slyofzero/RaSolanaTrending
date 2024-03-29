@@ -1,11 +1,10 @@
-import { InlineKeyboard } from "grammy";
 import { BOT_URL, BOT_USERNAME, CHANNEL_ID, PINNED_MSG_ID } from "@/utils/env";
 import { errorHandler, log } from "@/utils/handlers";
 import { trendingTokens } from "@/vars/trending";
-import { DEXSCREEN_URL, adSlotPrices } from "@/utils/constants";
+import { DEXSCREEN_URL } from "@/utils/constants";
 import { lastEditted, setLastEditted } from "@/vars/message";
 import { teleBot } from "..";
-import { advertisements } from "@/vars/advertisements";
+import { generateAdvertisementKeyboard } from "@/utils/bot";
 
 export async function updateTrendingMessage() {
   if (!CHANNEL_ID || isNaN(PINNED_MSG_ID)) {
@@ -14,7 +13,7 @@ export async function updateTrendingMessage() {
 
   let trendingTokensMessage = `🟢 @${BOT_USERNAME} (LIVE)\n\n`;
   const icons = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
-  const buyText = `[Buy a spot ⚡](${BOT_URL}?start=trend)\n`;
+  const buyText = `[*Buy a spot ⚡*](${BOT_URL}?start=trend)\n`;
 
   try {
     // ------------------------------ Trending Message ------------------------------
@@ -41,23 +40,7 @@ export async function updateTrendingMessage() {
     trendingTokensMessage += `\n_Automatically updates every minute_\n_Last updated at ${lastEditted}_`;
 
     // ------------------------------ Advertisements ------------------------------
-    let keyboard = new InlineKeyboard();
-
-    for (const index of Array.from(
-      Array(Object.keys(adSlotPrices).length).keys()
-    )) {
-      const adSlot = advertisements.find(
-        ({ slot }) => Number(slot) === index + 1
-      );
-
-      if (adSlot) {
-        const { text, link } = adSlot;
-        keyboard = keyboard.url(text, link).row();
-      } else {
-        const buttonLink = `${BOT_URL}?start=adBuyRequest`;
-        keyboard = keyboard.url("⚡ Advertise here", buttonLink).row();
-      }
-    }
+    const keyboard = generateAdvertisementKeyboard();
 
     teleBot.api
       .editMessageText(CHANNEL_ID, PINNED_MSG_ID, trendingTokensMessage, {

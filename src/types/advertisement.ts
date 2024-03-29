@@ -11,6 +11,6 @@ export interface StoredAdvertisement {
   paidAt: Timestamp;
   sentTo: string;
   amount: number;
-  expiresAt: Timestamp;
-  initiatedBy: number;
+  expiresAt?: Timestamp;
+  initiatedBy: string;
 }

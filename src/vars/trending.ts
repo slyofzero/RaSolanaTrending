@@ -6,6 +6,7 @@ export let trendingTokens: TrendingTokens = [];
 export let previouslyTrendingTokens: string[] = [];
 
 // Related to paid trending tokens
+export let allToTrend: StoredToTrend[] = [];
 export let toTrendTokens: StoredToTrend[] = [];
 export function setTopTrendingTokens(newTrendingTokens: TrendingTokens) {
   previouslyTrendingTokens = trendingTokens.map(([token]) => token);
@@ -13,12 +14,14 @@ export function setTopTrendingTokens(newTrendingTokens: TrendingTokens) {
 }
 
 export async function syncToTrend() {
-  const newToTrendTokens = await getDocument<StoredToTrend>({
+  allToTrend = await getDocument<StoredToTrend>({
     collectionName: "to_trend",
-    queries: [["status", "in", ["PAID", "MANUAL"]]],
+    queries: [["status", "in", ["PAID", "MANUAL", "PENDING"]]],
   });
 
-  toTrendTokens = newToTrendTokens.sort((a, b) => a.slot - b.slot);
+  toTrendTokens = allToTrend
+    .sort((a, b) => a.slot - b.slot)
+    .filter(({ status }) => ["PAID", "MANUAL"].includes(status));
 
   log(`Synced to_trend data`);
 }

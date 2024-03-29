@@ -22,6 +22,18 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
   }
 
   for (const { slot, token } of toTrendTokens) {
+    const alreadyTrendingRank = newTopTrendingTokens.findIndex(
+      ([storedToken]) => storedToken === token
+    );
+
+    if (alreadyTrendingRank !== -1) {
+      if (slot < alreadyTrendingRank) {
+        const [tokenData] = newTopTrendingTokens.splice(alreadyTrendingRank, 1);
+        newTopTrendingTokens.splice(slot, 0, tokenData);
+      }
+      continue;
+    }
+
     const pairData = await apiFetcher<PairsData>(`${TOKEN_DATA_URL}/${token}`);
     const firstPair = pairData.data.pairs.at(0);
     if (!firstPair) continue;

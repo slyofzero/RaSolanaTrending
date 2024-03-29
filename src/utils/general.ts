@@ -1,3 +1,5 @@
+import { urlRegex } from "./constants";
+
 export function formatToInternational(numberToFormat: string | number) {
   numberToFormat = Number(Number(numberToFormat).toFixed(2));
   const formattedNumber = new Intl.NumberFormat("en-US").format(numberToFormat);
@@ -63,4 +65,8 @@ export function generateRandomID() {
   const part3 = Array.from({ length: 7 }, generateRandomDigit).join("");
 
   return `${part1}-${part2}-${part3}`;
+}
+
+export function isValidUrl(url: string) {
+  return urlRegex.test(url);
 }

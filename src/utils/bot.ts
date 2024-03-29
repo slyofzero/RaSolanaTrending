@@ -1,5 +1,4 @@
 import { InlineKeyboard } from "grammy";
-import { adSlotPrices } from "./constants";
 import { advertisements } from "@/vars/advertisements";
 import { BOT_URL } from "./env";
 
@@ -34,12 +33,10 @@ export function hardCleanUpBotMessage(text: any) {
   return text;
 }
 
-function generateAdvertisementKeyboard() {
+export function generateAdvertisementKeyboard() {
   let keyboard = new InlineKeyboard();
 
-  for (const index of Array.from(
-    Array(Object.keys(adSlotPrices).length).keys()
-  )) {
+  for (const index of Array.from(Array(2).keys())) {
     const adSlot = advertisements.find(
       ({ slot }) => Number(slot) === index + 1
     );

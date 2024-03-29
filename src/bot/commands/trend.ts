@@ -1,7 +1,7 @@
 import { trendPrices } from "@/utils/constants";
 import { isValidEthToken } from "@/utils/web3";
 import { trendingState, userState } from "@/vars/state";
-import { toTrendTokens } from "@/vars/trending";
+import { toTrendTokens, trendingTokens } from "@/vars/trending";
 import {
   CallbackQueryContext,
   CommandContext,
@@ -22,6 +22,8 @@ export async function selectTrendingDuration(ctx: CommandContext<Context>) {
 
   if (!isValidEthToken(token || "")) {
     return ctx.reply("Please enter a proper token address");
+  } else if (trendingTokens.some(([storedToken]) => storedToken === token)) {
+    return ctx.reply(`Token ${token} is already trending`);
   }
 
   const storedTokenData = toTrendTokens.find(

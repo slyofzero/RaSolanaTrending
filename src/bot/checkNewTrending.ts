@@ -18,7 +18,7 @@ export async function checkNewTrending() {
     const { baseToken, priceUsd, priceChange, txns, pairAddress, liquidity, volume, dexId, fdv, pairCreatedAt} = tokenData; // prettier-ignore
     const { name, symbol } = baseToken;
     const { keyboard, scanLinksText } = generateTextFooter(token);
-    const age = moment(pairCreatedAt * 1e3).fromNow();
+    const age = moment(pairCreatedAt).fromNow();
 
     const solScanLink = `https://solscan.io/token/${token}`;
     const pairLink = `https://solscan.io/account/${pairAddress}`;

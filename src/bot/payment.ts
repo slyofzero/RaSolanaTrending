@@ -5,11 +5,13 @@ import {
   updateDocumentById,
 } from "@/firebase";
 import { web3 } from "@/rpc";
+import { StoredAdvertisement } from "@/types";
 import { StoredAccount } from "@/types/accounts";
 import { StoredToTrend } from "@/types/trending";
 import { apiFetcher } from "@/utils/api";
 import { cleanUpBotMessage } from "@/utils/bot";
 import {
+  adPrices,
   ethPriceApi,
   transactionValidTime,
   trendPrices,
@@ -19,7 +21,8 @@ import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
 import { generateAccount, splitPayment } from "@/utils/web3";
-import { trendingState } from "@/vars/state";
+import { syncAdvertisements } from "@/vars/advertisements";
+import { advertisementState, trendingState } from "@/vars/state";
 import { syncToTrend } from "@/vars/trending";
 import { Timestamp } from "firebase-admin/firestore";
 import { CallbackQueryContext, Context, InlineKeyboard } from "grammy";
@@ -65,66 +68,91 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
   if (!chatId || !username)
     return ctx.reply("Please restart the bot interaction again");
 
+  const isTrendingPayment = Boolean(trendingState[chatId]);
+  const commandToRedo = isTrendingPayment ? `/trend` : `/advertise`;
+  const callbackReplace = isTrendingPayment ? `trendSlot` : `adSlot`;
+
   try {
     ctx.deleteMessage();
     const slot = Number(
-      ctx.callbackQuery.data.replace(`${"trendSlot" || "adSlot"}-`, "")
+      ctx.callbackQuery.data.replace(`${callbackReplace}-`, "")
     );
-    const isTrendingPayment = Object.values(trendingState[chatId]).length > 0;
-
     const account = await getUnlockedAccount();
     const hash = nanoid(10).replace("-", "a");
-    let text = "";
-    let priceInEth = 0;
-    const { duration, token } = trendingState[chatId];
-    if (!duration || !token) return ctx.reply("Please do /trend again");
 
+    const { duration } = trendingState[chatId] || advertisementState[chatId];
+    if (!duration || !slot)
+      return ctx.reply(`Please do ${commandToRedo} again`);
+
+    // ------------------------------ Calculating prices based on trend or ad buy ------------------------------
+    let priceUsd = 0;
     if (isTrendingPayment) {
-      trendingState[chatId] = { ...trendingState[chatId], slot };
+      priceUsd = trendPrices[duration][slot - 1];
+    } else {
+      priceUsd = adPrices[duration];
+    }
 
-      const price = trendPrices[duration][slot - 1];
-      const ethPrice = (await apiFetcher<any>(ethPriceApi)).data.price;
+    const ethPrice = (await apiFetcher<any>(ethPriceApi)).data.price;
+    const priceEth = parseFloat((priceUsd / ethPrice).toFixed(8));
 
-      priceInEth = roundUpToDecimalPlace(price / ethPrice, 6);
-      text = `You have selected trending slot ${slot} for ${duration} hours.
-The total cost - \`${priceInEth}\` ETH
+    const slotText = isTrendingPayment ? "trending" : "ad";
+    const paymentCategory = isTrendingPayment ? "trendingPayment" : "adPayment";
+    let text = `You have selected ${slotText} slot ${slot} for ${duration} hours.
+The total cost - \`${roundUpToDecimalPlace(priceEth, 6)}\` ETH
 
-Send the bill amount to the below address within 20 minutes, starting from this message generation. Once paid, click on "I have paid" to verify payment. If 20 minutes have already passed then please restart using /trend.
+Send the bill amount to the below address within 20 minutes, starting from this message generation. Once paid, click on "I have paid" to verify payment. If 20 minutes have already passed then please restart using /${commandToRedo}.
 
 Address - \`${account}\``;
-    }
 
     text = text.replace(/\./g, "\\.").replace(/-/g, "\\-");
     const keyboard = new InlineKeyboard().text(
       "I have paid",
-      `trendingPayment-${hash}`
+      `${paymentCategory}-${hash}`
     );
 
     ctx.reply(text, { parse_mode: "MarkdownV2", reply_markup: keyboard });
 
-    const dataToAdd: StoredToTrend = {
+    const collectionName = isTrendingPayment ? "to_trend" : "advertisements";
+    let dataToAdd: StoredToTrend | StoredAdvertisement = {
       paidAt: Timestamp.now(),
       sentTo: account,
-      amount: priceInEth,
+      amount: priceEth,
       slot: slot,
       duration: duration,
-      initiatedBy: username,
-      token: token,
-      hash: hash,
+      hash,
       status: "PENDING",
-    };
+      initiatedBy: username,
+    } as StoredToTrend | StoredAdvertisement;
+
+    if (isTrendingPayment) {
+      const { token } = trendingState[chatId];
+      dataToAdd = {
+        ...dataToAdd,
+        token: token || "",
+      };
+    } else {
+      const { text, link } = advertisementState[chatId];
+      dataToAdd = {
+        ...dataToAdd,
+        text: text || "",
+        link: link || "",
+      };
+    }
 
     addDocument({
-      collectionName: "to_trend",
+      collectionName,
       data: dataToAdd,
       id: hash,
     });
+
+    delete trendingState[chatId];
+    delete advertisementState[chatId];
 
     return true;
   } catch (error) {
     errorHandler(error);
     ctx.reply(
-      "An error occurred. Please don't follow with the payment and instead use /trend again in the same way you used earlier."
+      `An error occurred. Please don't follow with the payment and instead do ${commandToRedo} in the same way you used earlier.`
     );
 
     return false;
@@ -136,6 +164,8 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
     const from = ctx.from;
     const callbackData = ctx.callbackQuery.data;
     const [category, hash] = callbackData.split("-");
+    const isTrendingPayment = category === "trendingPayment";
+    const collectionName = isTrendingPayment ? "to_trend" : "advertisements";
 
     if (!from || !callbackData || !hash) {
       return ctx.reply("Please click on the button again");
@@ -145,10 +175,8 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
       "Checking for payment receival, a confirmation message would be sent to you in a short while. Expected time - 60 seconds"
     );
 
-    // const isTrendingPayment = category === "trendingPayment"
-
     const trendingPayment = await getDocumentById<StoredToTrend>({
-      collectionName: "to_trend",
+      collectionName,
       id: hash,
     });
 
@@ -193,14 +221,14 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
           `Checking for subscription payment, Attempt - ${attempt_number + 1}`
         );
 
-        // // Checking if payment was made
-        // const balance = await web3.eth.getBalance(account.address);
+        // Checking if payment was made
+        const balance = await web3.eth.getBalance(account.address);
 
-        // if (balance < Number(web3.utils.toWei(amount, "ether"))) {
-        //   log(`Transaction amount doesn't match`);
-        //   await sleep(30000);
-        //   continue attemptsCheck;
-        // }
+        if (balance < Number(web3.utils.toWei(amount, "ether"))) {
+          log(`Transaction amount doesn't match`);
+          await sleep(30000);
+          continue attemptsCheck;
+        }
 
         const logText = `Transaction ${hash} for trend verified with payment of ${amount} ETH`;
         log(logText);
@@ -215,7 +243,7 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
               currentTimestamp.nanoseconds
             ),
           },
-          collectionName: "to_trend",
+          collectionName,
           id: hash,
         });
 
@@ -226,7 +254,9 @@ Transaction hash for your payment is \`${hash}\`. Your token would be visible, a
 
 Address Payment Received at - ${sentTo}`;
 
-        syncToTrend()
+        const syncFunc = isTrendingPayment ? syncToTrend : syncAdvertisements;
+
+        syncFunc()
           .then(() => {
             ctx.reply(cleanUpBotMessage(confirmationText), {
               parse_mode: "MarkdownV2",
@@ -241,15 +271,15 @@ Address Payment Received at - ${sentTo}`;
           .catch((e) => errorHandler(e));
 
         // Splitting payment
-        // splitPayment(secretKey, balance)
-        // .then(() => {
-        updateDocumentById({
-          updates: { locked: false },
-          collectionName: "accounts",
-          id: accountID || "",
-        });
-        // })
-        // .catch((e) => errorHandler(e));
+        splitPayment(secretKey, balance)
+          .then(() => {
+            updateDocumentById({
+              updates: { locked: false },
+              collectionName: "accounts",
+              id: accountID || "",
+            });
+          })
+          .catch((e) => errorHandler(e));
 
         return true;
       } catch (error) {
