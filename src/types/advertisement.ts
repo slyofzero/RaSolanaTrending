@@ -12,5 +12,7 @@ export interface StoredAdvertisement {
   sentTo: string;
   amount: number;
   expiresAt?: Timestamp;
-  initiatedBy: string;
+  initiatedBy: number;
+  username: string;
+  referrer?: number;
 }

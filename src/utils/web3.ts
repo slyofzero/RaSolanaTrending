@@ -4,7 +4,7 @@ import { residueEth, splitPaymentsWith } from "./constants";
 import { provider, web3 } from "@/rpc";
 import { sleep } from "./time";
 
-export function isValidEthToken(address: string) {
+export function isValidEthAddress(address: string) {
   const regex = /^0x[a-fA-F0-9]{40}$/;
   return regex.test(address);
 }

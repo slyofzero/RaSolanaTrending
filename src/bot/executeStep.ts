@@ -7,6 +7,11 @@ import {
   selectAdDuration,
   selectAdSlot,
 } from "./commands/advertise";
+import {
+  referralLink,
+  setCustomLink,
+  setReferralText,
+} from "./commands/referralLink";
 
 const steps: { [key: string]: any } = {
   toTrend: selectTrendingDuration,
@@ -19,13 +24,17 @@ const steps: { [key: string]: any } = {
   adDuration: selectAdSlot,
   adSlot: preparePayment,
   adPayment: confirmPayment,
+
+  referralAddress: referralLink,
+  setCustomLink: setCustomLink,
+  setReferralText: setReferralText,
 };
 
 export async function executeStep(
   ctx: CommandContext<Context> | CallbackQueryContext<Context>
 ) {
   const chatId = ctx.chat?.id;
-  if (!chatId) return ctx.reply("Please do /trend again");
+  if (!chatId) return ctx.reply("Please redo your action");
 
   const queryCategory = ctx.callbackQuery?.data?.split("-").at(0);
   const step = userState[chatId] || queryCategory || "";

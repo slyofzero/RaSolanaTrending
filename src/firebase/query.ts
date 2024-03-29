@@ -2,8 +2,8 @@ import { WhereFilterOp } from "firebase-admin/firestore";
 import { db } from "./config";
 import { firebaseCollectionPrefix } from "@/utils/constants";
 
-interface addDocumentInterface {
-  data: object;
+interface addDocumentInterface<T> {
+  data: T;
   collectionName: string;
   id?: string;
 }
@@ -18,17 +18,17 @@ interface removeDocumentInterface {
   id: string;
 }
 
-interface getDocumentInterface {
+interface getDocumentInterface<T> {
   collectionName: string;
   // eslint-disable-next-line
-  queries?: [any, WhereFilterOp, any][];
+  queries?: [keyof T, WhereFilterOp, any][];
   limit?: number;
 }
 
-interface updateDocumentByIdInterface {
+interface updateDocumentByIdInterface<T> {
   id: string;
   // eslint-disable-next-line
-  updates: any;
+  updates: Partial<T>;
   collectionName: string;
 }
 
@@ -36,7 +36,7 @@ export const addDocument = async <T>({
   data,
   collectionName,
   id,
-}: addDocumentInterface) => {
+}: addDocumentInterface<T>) => {
   collectionName += firebaseCollectionPrefix;
   const collectionRef = db.collection(collectionName);
   let docRef: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> | null =
@@ -44,9 +44,9 @@ export const addDocument = async <T>({
 
   if (id) {
     docRef = collectionRef.doc(id);
-    await docRef.set(data);
+    await docRef.set(data as object);
   } else {
-    docRef = await collectionRef.add(data);
+    docRef = await collectionRef.add(data as object);
   }
 
   return docRef as T;
@@ -73,11 +73,11 @@ export const removeDocumentById = async ({
   }
 };
 
-export const removeDocument = async ({
+export const removeDocument = async <T>({
   queries,
   collectionName,
   limit: _limit,
-}: getDocumentInterface) => {
+}: getDocumentInterface<T>) => {
   collectionName += firebaseCollectionPrefix;
   const collectionRef = db.collection(collectionName);
   let queryRef: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> =
@@ -86,7 +86,7 @@ export const removeDocument = async ({
   if (queries && queries.length > 0) {
     for (const query of queries) {
       const [field, op, value] = query;
-      queryRef = queryRef.where(field, op, value);
+      queryRef = queryRef.where(String(field), op, value);
     }
   }
 
@@ -124,7 +124,7 @@ export const getDocument = async <T>({
   queries,
   collectionName,
   limit: _limit,
-}: getDocumentInterface) => {
+}: getDocumentInterface<T>) => {
   collectionName += firebaseCollectionPrefix;
   const collectionRef = db.collection(collectionName);
   let queryRef: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> =
@@ -133,7 +133,7 @@ export const getDocument = async <T>({
   if (queries && queries.length > 0) {
     for (const query of queries) {
       const [field, op, value] = query;
-      queryRef = queryRef.where(field, op, value);
+      queryRef = queryRef.where(String(field), op, value);
     }
   }
 
@@ -157,10 +157,10 @@ export const updateDocumentById = async <T>({
   id,
   updates,
   collectionName,
-}: updateDocumentByIdInterface) => {
+}: updateDocumentByIdInterface<T>) => {
   collectionName += firebaseCollectionPrefix;
   const dataRef = db.collection(collectionName).doc(id);
-  await dataRef.update(updates);
+  await dataRef.update(updates as object);
   const docSnap = await dataRef.get();
 
   return { ...docSnap.data(), id: docSnap.id } as T;

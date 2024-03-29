@@ -121,7 +121,8 @@ Address - \`${account}\``;
       duration: duration,
       hash,
       status: "PENDING",
-      initiatedBy: username,
+      initiatedBy: chatId,
+      username,
     } as StoredToTrend | StoredAdvertisement;
 
     if (isTrendingPayment) {

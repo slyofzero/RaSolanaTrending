@@ -51,3 +51,4 @@ export const ethPriceApi =
 
 export const DEXSCREEN_URL = "https://dexscreener.com";
 export const residueEth = ethers.utils.parseEther("0.000035").toBigInt();
+export const referralCommisionFee = 0.1;

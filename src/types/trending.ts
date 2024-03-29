@@ -13,5 +13,7 @@ export interface StoredToTrend {
   amount: number;
   paidAt: Timestamp;
   expiresAt?: Timestamp;
-  initiatedBy: string;
+  initiatedBy: number;
+  username: string;
+  referrer?: number;
 }
