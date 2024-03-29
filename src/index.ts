@@ -39,12 +39,12 @@ if (!DEX_URL) {
 
     ws.on("close", function close() {
       log("Disconnected");
-      setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+      process.exit(1);
     });
 
     ws.on("error", function error() {
       log("Error");
-      setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+      process.exit(1);
     });
 
     ws.on("message", async (event) => {
