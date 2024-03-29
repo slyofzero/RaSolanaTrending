@@ -44,7 +44,7 @@ export async function referralLink(
     }).then(() => log(`Referral data added for ${chatId}`));
 
     return;
-  } else if (messageText === "/referral_link" && !referralLinkData.address) {
+  } else if (messageText?.startsWith("/") && !referralLinkData.address) {
     userState[chatId] = "referralAddress";
 
     return ctx.reply(
