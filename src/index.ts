@@ -58,8 +58,8 @@ if (!DEX_URL) {
         await processTrendingPairs(pairs);
 
         updateTrendingMessage();
-        // trackTokenMC();
-        // checkNewTrending();
+        trackTokenMC();
+        checkNewTrending();
 
         cleanUpExpired();
       }
