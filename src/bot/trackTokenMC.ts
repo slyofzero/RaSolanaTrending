@@ -1,4 +1,8 @@
-import { generateTextFooter, hardCleanUpBotMessage } from "@/utils/bot";
+import {
+  cleanUpBotMessage,
+  generateTextFooter,
+  hardCleanUpBotMessage,
+} from "@/utils/bot";
 import { tokenMCTracking } from "@/vars/priceTracking";
 import { trendingTokens } from "@/vars/trending";
 import { teleBot } from "..";
@@ -34,7 +38,7 @@ export async function trackTokenMC() {
 
       const message = `🏆${hardCleanUpBotMessage(
         name
-      )} did *${exactIncrease}x* since trending🏆
+      )} did *${cleanUpBotMessage(exactIncrease)}x* since trending🏆
 
 📍Discovery \\- $${initialMC}
 📍Currently \\- $${currentMC}
