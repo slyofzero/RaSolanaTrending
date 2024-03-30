@@ -10,10 +10,12 @@ import {
 } from "@/vars/trending";
 
 export async function processTrendingPairs(pairs: WSSPairData[]) {
-  const top15Pairs = pairs.slice(0, 15);
   const newTopTrendingTokens: TrendingTokens = [];
 
-  for (const pair of top15Pairs) {
+  for (const pair of pairs) {
+    // Only need 15 tokens at the top
+    if (newTopTrendingTokens.length >= 15) break;
+
     const { baseToken } = pair;
     const { address } = baseToken;
     const pairData = await apiFetcher<PairsData>(
