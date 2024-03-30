@@ -266,7 +266,7 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
         });
 
         const confirmationText = `You have purchased a trending slot ${slot} for ${duration} hours.
-Payment received of - \`${amount}\` ETH
+Payment received of - \`${roundUpToDecimalPlace(amount, 2)}\` ETH
 
 Transaction hash for your payment is \`${hash}\`. Your token would be visible, and available to be scanned the next time the bot updates the trending message, so it may take a minute or two. In case of any doubts please reach out to the admins of the bot for any query.
 
