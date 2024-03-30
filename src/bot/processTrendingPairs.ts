@@ -3,7 +3,11 @@ import { TrendingTokens } from "@/types/trending";
 import { apiFetcher } from "@/utils/api";
 import { TOKEN_DATA_URL } from "@/utils/env";
 import { log } from "@/utils/handlers";
-import { setTopTrendingTokens, toTrendTokens } from "@/vars/trending";
+import {
+  previouslyTrendingTokens,
+  setTopTrendingTokens,
+  toTrendTokens,
+} from "@/vars/trending";
 
 export async function processTrendingPairs(pairs: WSSPairData[]) {
   const top15Pairs = pairs.slice(0, 15);
@@ -42,7 +46,10 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
   }
 
   setTopTrendingTokens(newTopTrendingTokens);
-  log(
-    `Trending tokens set, tokens trending now - ${newTopTrendingTokens.length}`
-  );
+
+  if (previouslyTrendingTokens.length !== newTopTrendingTokens.length) {
+    log(
+      `Trending tokens set, tokens trending now - ${newTopTrendingTokens.length}`
+    );
+  }
 }
