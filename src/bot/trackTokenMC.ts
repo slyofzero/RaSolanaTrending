@@ -43,18 +43,18 @@ Trending at \\#${index + 1}
 
 ${scanLinksText}`;
 
-      teleBot.api
-        .sendMessage(CHANNEL_ID, message, {
+      try {
+        await teleBot.api.sendMessage(CHANNEL_ID, message, {
           parse_mode: "MarkdownV2",
           // @ts-expect-error Type not found
           disable_web_page_preview: true,
           reply_markup: keyboard,
-        })
-        .catch((e) => {
-          // eslint-disable-next-line
-          console.log(message);
-          errorHandler(e);
         });
+      } catch (e) {
+        // eslint-disable-next-line
+        console.log(message);
+        errorHandler(e);
+      }
     }
   }
 

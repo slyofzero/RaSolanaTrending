@@ -31,10 +31,13 @@ export async function checkNewTrending() {
     const shortenedPairAddress = `${pairAddress.slice(
       0,
       3
-    )}...${pairAddress.slice(pairAddress.length - 3, pairAddress.length)}`;
+    )}\\.\\.\\.${pairAddress.slice(
+      pairAddress.length - 3,
+      pairAddress.length
+    )}`;
     const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
 
-    let message = `*${hardCleanedSymbol} trending at \\#${index + 1}*
+    const message = `*${hardCleanedSymbol} trending at \\#${index + 1}*
 
 📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
 ⚠ Mutable Metadata
@@ -55,26 +58,24 @@ export async function checkNewTrending() {
 📊 [Birdeye](${birdEyeLink}) \\| [DexS](${dexSLink})
 
 💲 Price: \\$${cleanUpBotMessage(priceUsd)}
-🔗 DexID - \`${dexId}\`
+🔗 DexID \\- \`${dexId}\`
 
-🪙 Token - \`${token}\`
+🪙 Token \\- \`${token}\`
 
 ${scanLinksText}`;
 
-    message = message.replace(/-/g, "\\-");
-
-    teleBot.api
-      .sendMessage(CHANNEL_ID, message, {
+    try {
+      await teleBot.api.sendMessage(CHANNEL_ID, message, {
         parse_mode: "MarkdownV2",
         // @ts-expect-error Type not found
         disable_web_page_preview: true,
         reply_markup: keyboard,
-      })
-      .catch((e) => {
-        // eslint-disable-next-line
-        console.log(message);
-        errorHandler(e);
       });
+    } catch (e) {
+      // eslint-disable-next-line
+      console.log(message);
+      errorHandler(e);
+    }
 
     log(`Sending message for ${token}`);
   }
