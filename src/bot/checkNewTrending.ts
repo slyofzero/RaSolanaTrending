@@ -9,35 +9,29 @@ import moment from "moment";
 import { teleBot } from "..";
 import { errorHandler, log } from "@/utils/handlers";
 import { CHANNEL_ID } from "@/utils/env";
+import { PairData } from "@/types";
 
-export async function checkNewTrending() {
+async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   if (!CHANNEL_ID) {
     return log("Channel ID or PINNED_MSG_ID is undefined");
   }
 
-  for (const [index, [token, tokenData]] of trendingTokens.entries()) {
-    const wasPreviouslyTrending = previouslyTrendingTokens.includes(token);
-    if (wasPreviouslyTrending) continue;
+  const { baseToken, priceUsd, priceChange, txns, pairAddress, liquidity, volume, dexId, fdv, pairCreatedAt} = tokenData; // prettier-ignore
+  const { name, symbol, address: token } = baseToken;
+  const { keyboard, scanLinksText } = generateTextFooter(token);
+  const age = moment(pairCreatedAt).fromNow();
 
-    const { baseToken, priceUsd, priceChange, txns, pairAddress, liquidity, volume, dexId, fdv, pairCreatedAt} = tokenData; // prettier-ignore
-    const { name, symbol } = baseToken;
-    const { keyboard, scanLinksText } = generateTextFooter(token);
-    const age = moment(pairCreatedAt).fromNow();
+  const solScanLink = `https://solscan.io/token/${token}`;
+  const pairLink = `https://solscan.io/account/${pairAddress}`;
+  const birdEyeLink = `https://birdeye.so/token/${token}?chain=solana`;
+  const dexSLink = `https://dexscreener.com/solana/${token}`;
+  const shortenedPairAddress = `${pairAddress.slice(
+    0,
+    3
+  )}\\.\\.\\.${pairAddress.slice(pairAddress.length - 3, pairAddress.length)}`;
+  const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
 
-    const solScanLink = `https://solscan.io/token/${token}`;
-    const pairLink = `https://solscan.io/account/${pairAddress}`;
-    const birdEyeLink = `https://birdeye.so/token/${token}?chain=solana`;
-    const dexSLink = `https://dexscreener.com/solana/${token}`;
-    const shortenedPairAddress = `${pairAddress.slice(
-      0,
-      3
-    )}\\.\\.\\.${pairAddress.slice(
-      pairAddress.length - 3,
-      pairAddress.length
-    )}`;
-    const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
-
-    const message = `*${hardCleanedSymbol} trending at \\#${index + 1}*
+  const message = `*${hardCleanedSymbol} trending at \\#${index + 1}*
 
 📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
 ⚠ Mutable Metadata
@@ -47,14 +41,14 @@ export async function checkNewTrending() {
 🔸 Chain: SOL \\| ⚖️ Age: ${age}
 
 💰 MC: \\$${`${formatM2Number(fdv)}`} \\| Liq: \\$${formatM2Number(
-      liquidity.usd
-    )}
+    liquidity.usd
+  )}
 🚀 24h: ${formatM2Number(priceChange.h24)}% \\| V: \\$${formatM2Number(
-      volume.h24
-    )}
+    volume.h24
+  )}
 📈 Buys: ${formatM2Number(txns.h24.buys)} \\| 📉 Sells: ${formatM2Number(
-      txns.h24.sells
-    )}
+    txns.h24.sells
+  )}
 📊 [Birdeye](${birdEyeLink}) \\| [DexS](${dexSLink})
 
 💲 Price: \\$${cleanUpBotMessage(priceUsd)}
@@ -64,19 +58,38 @@ export async function checkNewTrending() {
 
 ${scanLinksText}`;
 
-    try {
-      await teleBot.api.sendMessage(CHANNEL_ID, message, {
-        parse_mode: "MarkdownV2",
-        // @ts-expect-error Type not found
-        disable_web_page_preview: true,
-        reply_markup: keyboard,
-      });
-    } catch (e) {
-      // eslint-disable-next-line
-      console.log(message);
-      errorHandler(e);
-    }
+  try {
+    await teleBot.api.sendMessage(CHANNEL_ID, message, {
+      parse_mode: "MarkdownV2",
+      // @ts-expect-error Type not found
+      disable_web_page_preview: true,
+      reply_markup: keyboard,
+    });
+  } catch (e) {
+    // eslint-disable-next-line
+    console.log(message);
+    errorHandler(e);
+  }
 
-    log(`Sending message for ${token}`);
+  log(`Sending message for ${token}`);
+}
+
+export async function checkNewTrending() {
+  // Checking for new trending tokens
+  for (const [index, [token, tokenData]] of trendingTokens.entries()) {
+    const wasPreviouslyTrending = previouslyTrendingTokens.includes(token);
+    if (wasPreviouslyTrending) continue;
+
+    sendNewTrendingMsg(tokenData, index);
+  }
+
+  // Checking if any in the top 5 tokens have changed ranks
+  for (const [index, [token, tokenData]] of trendingTokens
+    .slice(0, 5)
+    .entries()) {
+    const pastRank = previouslyTrendingTokens.findIndex(
+      (storedToken) => storedToken === token
+    );
+    if (index > pastRank) sendNewTrendingMsg(tokenData, index);
   }
 }
