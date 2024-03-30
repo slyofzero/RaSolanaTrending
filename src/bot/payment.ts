@@ -27,7 +27,11 @@ import { advertisementState, trendingState } from "@/vars/state";
 import { syncToTrend } from "@/vars/trending";
 import { Timestamp } from "firebase-admin/firestore";
 import { CallbackQueryContext, Context, InlineKeyboard } from "grammy";
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
+const alphabet =
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const length = 10; // You can change the length as needed
+const nanoid = customAlphabet(alphabet, length);
 
 export async function getUnlockedAccount() {
   let publicKey: string = "";
@@ -79,7 +83,7 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
       ctx.callbackQuery.data.replace(`${callbackReplace}-`, "")
     );
     const account = await getUnlockedAccount();
-    const hash = nanoid(10).replace("-", "a");
+    const hash = nanoid(10);
 
     const { duration } = trendingState[chatId] || advertisementState[chatId];
     if (!duration || !slot)
