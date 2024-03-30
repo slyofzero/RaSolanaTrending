@@ -3,7 +3,7 @@ import { tokenMCTracking } from "@/vars/priceTracking";
 import { trendingTokens } from "@/vars/trending";
 import { teleBot } from "..";
 import { CHANNEL_ID } from "@/utils/env";
-import { log } from "@/utils/handlers";
+import { errorHandler, log } from "@/utils/handlers";
 
 export async function trackTokenMC() {
   if (!CHANNEL_ID) {
@@ -43,12 +43,18 @@ Trending at \\#${index + 1}
 
 ${scanLinksText}`;
 
-      await teleBot.api.sendMessage(CHANNEL_ID, message, {
-        parse_mode: "MarkdownV2",
-        // @ts-expect-error Type not found
-        disable_web_page_preview: true,
-        reply_markup: keyboard,
-      });
+      teleBot.api
+        .sendMessage(CHANNEL_ID, message, {
+          parse_mode: "MarkdownV2",
+          // @ts-expect-error Type not found
+          disable_web_page_preview: true,
+          reply_markup: keyboard,
+        })
+        .catch((e) => {
+          // eslint-disable-next-line
+          console.log(message);
+          errorHandler(e);
+        });
     }
   }
 

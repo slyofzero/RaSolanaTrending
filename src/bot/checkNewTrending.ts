@@ -7,7 +7,7 @@ import { formatM2Number } from "@/utils/general";
 import { previouslyTrendingTokens, trendingTokens } from "@/vars/trending";
 import moment from "moment";
 import { teleBot } from "..";
-import { log } from "@/utils/handlers";
+import { errorHandler, log } from "@/utils/handlers";
 import { CHANNEL_ID } from "@/utils/env";
 
 export async function checkNewTrending() {
@@ -63,12 +63,18 @@ ${scanLinksText}`;
 
     message = message.replace(/-/g, "\\-");
 
-    await teleBot.api.sendMessage(CHANNEL_ID, message, {
-      parse_mode: "MarkdownV2",
-      // @ts-expect-error Type not found
-      disable_web_page_preview: true,
-      reply_markup: keyboard,
-    });
+    teleBot.api
+      .sendMessage(CHANNEL_ID, message, {
+        parse_mode: "MarkdownV2",
+        // @ts-expect-error Type not found
+        disable_web_page_preview: true,
+        reply_markup: keyboard,
+      })
+      .catch((e) => {
+        // eslint-disable-next-line
+        console.log(message);
+        errorHandler(e);
+      });
 
     log(`Sending message for ${token}`);
   }
