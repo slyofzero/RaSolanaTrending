@@ -1,5 +1,9 @@
-import { generateTextFooter, hardCleanUpBotMessage } from "@/utils/bot";
-import { formatNumber } from "@/utils/general";
+import {
+  cleanUpBotMessage,
+  generateTextFooter,
+  hardCleanUpBotMessage,
+} from "@/utils/bot";
+import { formatM2Number } from "@/utils/general";
 import { previouslyTrendingTokens, trendingTokens } from "@/vars/trending";
 import moment from "moment";
 import { teleBot } from "..";
@@ -30,7 +34,7 @@ export async function checkNewTrending() {
     )}...${pairAddress.slice(pairAddress.length - 3, pairAddress.length)}`;
     const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
 
-    let message = `* ${hardCleanedSymbol} trending at \\#${index + 1}*
+    let message = `*${hardCleanedSymbol} trending at \\#${index + 1}*
 
 📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
 ⚠ Mutable Metadata
@@ -39,25 +43,25 @@ export async function checkNewTrending() {
 👤 Owner: RENOUNCED
 🔸 Chain: SOL \\| ⚖️ Age: ${age}
 
-💰 MC: \\$${`${formatNumber(fdv)}`} \\| Liq: \\$${formatNumber(liquidity.usd)}
-🚀 24h: ${formatNumber(priceChange.h24)}% \\| V: \\$${formatNumber(volume.h24)}
-📈 Buys: ${formatNumber(txns.h24.buys)} \\| 📉 Sells: ${formatNumber(
+💰 MC: \\$${`${formatM2Number(fdv)}`} \\| Liq: \\$${formatM2Number(
+      liquidity.usd
+    )}
+🚀 24h: ${formatM2Number(priceChange.h24)}% \\| V: \\$${formatM2Number(
+      volume.h24
+    )}
+📈 Buys: ${formatM2Number(txns.h24.buys)} \\| 📉 Sells: ${formatM2Number(
       txns.h24.sells
     )}
 📊 [Birdeye](${birdEyeLink}) \\| [DexS](${dexSLink})
 
-💲 Price: \\$${priceUsd}
+💲 Price: \\$${cleanUpBotMessage(priceUsd)}
 🔗 DexID - \`${dexId}\`
 
 🪙 Token - \`${token}\`
 
 ${scanLinksText}`;
 
-    message = message
-      .replace(/\./g, "\\.")
-      .replace(/-/g, "\\-")
-      .replace(/=/g, "\\=")
-      .replace(/!/g, "\\!");
+    message = message.replace(/-/g, "\\-");
 
     await teleBot.api.sendMessage(CHANNEL_ID, message, {
       parse_mode: "MarkdownV2",

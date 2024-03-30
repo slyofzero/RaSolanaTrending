@@ -1,3 +1,4 @@
+import { cleanUpBotMessage } from "./bot";
 import { urlRegex } from "./constants";
 
 export function formatToInternational(numberToFormat: string | number) {
@@ -39,6 +40,10 @@ export function formatNumber(num: string | number) {
   });
 
   return formatter.format(num);
+}
+
+export function formatM2Number(num: string | number) {
+  return cleanUpBotMessage(formatNumber(num));
 }
 
 export function roundUpToDecimalPlace(
