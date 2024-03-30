@@ -4,12 +4,18 @@ import {
   hardCleanUpBotMessage,
 } from "@/utils/bot";
 import { formatM2Number } from "@/utils/general";
-import { previouslyTrendingTokens, trendingTokens } from "@/vars/trending";
+import {
+  previouslyTrendingTokens,
+  toTrendTokens,
+  trendingTokens,
+} from "@/vars/trending";
 import moment from "moment";
 import { teleBot } from "..";
 import { errorHandler, log } from "@/utils/handlers";
 import { CHANNEL_ID } from "@/utils/env";
-import { PairData } from "@/types";
+import { PairData, PairsData } from "@/types";
+import { apiFetcher } from "@/utils/api";
+import { DEXSCREEN_URL } from "@/utils/constants";
 
 async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   if (!CHANNEL_ID) {
@@ -80,7 +86,7 @@ export async function checkNewTrending() {
     const wasPreviouslyTrending = previouslyTrendingTokens.includes(token);
     if (wasPreviouslyTrending) continue;
 
-    sendNewTrendingMsg(tokenData, index);
+    await sendNewTrendingMsg(tokenData, index);
   }
 
   // Checking if any in the top 5 tokens have changed ranks
@@ -90,6 +96,16 @@ export async function checkNewTrending() {
     const pastRank = previouslyTrendingTokens.findIndex(
       (storedToken) => storedToken === token
     );
-    if (index > pastRank) sendNewTrendingMsg(tokenData, index);
+    if (index > pastRank) await sendNewTrendingMsg(tokenData, index);
+  }
+}
+
+export async function sendToTrendTokensMsg() {
+  for (const toTrendData of toTrendTokens) {
+    const { token, slot } = toTrendData;
+    const tokenData = await apiFetcher<PairsData>(`${DEXSCREEN_URL}/${token}`);
+    const firstPair = tokenData.data.pairs.at(0);
+
+    if (firstPair) await sendNewTrendingMsg(firstPair, slot - 1);
   }
 }

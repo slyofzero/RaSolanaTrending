@@ -10,7 +10,7 @@ import { getNowTimestamp, getSecondsElapsed } from "./utils/time";
 import { syncToTrend } from "./vars/trending";
 import { updateTrendingMessage } from "./bot/updateTrendingMessage";
 import { trackTokenMC } from "./bot/trackTokenMC";
-import { checkNewTrending } from "./bot/checkNewTrending";
+import { checkNewTrending, sendToTrendTokensMsg } from "./bot/checkNewTrending";
 import { syncAdvertisements } from "./vars/advertisements";
 import { cleanUpExpired } from "./bot/cleanUp";
 
@@ -67,4 +67,6 @@ if (!DEX_URL) {
   }
 
   connectWebSocket();
+  sendToTrendTokensMsg();
+  setInterval(sendToTrendTokensMsg, 30 * 60 * 1e3);
 })();
