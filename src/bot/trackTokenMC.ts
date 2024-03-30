@@ -1,4 +1,4 @@
-import { generateTextFooter } from "@/utils/bot";
+import { generateTextFooter, hardCleanUpBotMessage } from "@/utils/bot";
 import { tokenMCTracking } from "@/vars/priceTracking";
 import { trendingTokens } from "@/vars/trending";
 import { teleBot } from "..";
@@ -24,20 +24,27 @@ export async function trackTokenMC() {
     const increase = Math.floor(exactIncrease);
 
     if (increase > pastBenchmark) {
+      tokenMCTracking[token] = {
+        ...tokenMCTracking[token],
+        pastBenchmark: increase,
+      };
+
       const { scanLinksText, keyboard } = generateTextFooter(token);
       const { name } = tokenData.baseToken;
 
-      const message = `🏆${name} did a *${exactIncrease}x* jump since trending🏆
+      const message = `🏆${hardCleanUpBotMessage(
+        name
+      )} did *${exactIncrease}x* since trending🏆
 
 📍Discovery - $${initialMC}
 📍Currently - $${currentMC}
 
-Trending at #${index + 1}
+Trending at \\#${index + 1}
 
 ${scanLinksText}`;
 
       await teleBot.api.sendMessage(CHANNEL_ID, message, {
-        parse_mode: "Markdown",
+        parse_mode: "MarkdownV2",
         // @ts-expect-error Type not found
         disable_web_page_preview: true,
         reply_markup: keyboard,

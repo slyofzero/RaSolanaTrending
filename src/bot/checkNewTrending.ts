@@ -28,12 +28,11 @@ export async function checkNewTrending() {
       0,
       3
     )}...${pairAddress.slice(pairAddress.length - 3, pairAddress.length)}`;
+    const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
 
-    let message = `*Trending at \\#${index + 1}*
+    let message = `* ${hardCleanedSymbol} trending at \\#${index + 1}*
 
-📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanUpBotMessage(
-      symbol
-    )}\\)](${solScanLink})
+📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
 ⚠ Mutable Metadata
 
 📌 Pair: [${shortenedPairAddress}](${pairLink})
