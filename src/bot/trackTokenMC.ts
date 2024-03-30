@@ -36,8 +36,8 @@ export async function trackTokenMC() {
         name
       )} did *${exactIncrease}x* since trending🏆
 
-📍Discovery - $${initialMC}
-📍Currently - $${currentMC}
+📍Discovery \\- $${initialMC}
+📍Currently \\- $${currentMC}
 
 Trending at \\#${index + 1}
 
