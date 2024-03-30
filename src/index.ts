@@ -67,6 +67,5 @@ if (!DEX_URL) {
   }
 
   connectWebSocket();
-  sendToTrendTokensMsg();
   setInterval(sendToTrendTokensMsg, 30 * 60 * 1e3);
 })();
