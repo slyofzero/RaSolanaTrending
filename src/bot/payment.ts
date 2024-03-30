@@ -103,7 +103,7 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
     const slotText = isTrendingPayment ? "trending" : "ad";
     const paymentCategory = isTrendingPayment ? "trendingPayment" : "adPayment";
     let text = `You have selected ${slotText} slot ${slot} for ${duration} hours.
-The total cost - \`${roundUpToDecimalPlace(priceEth, 6)}\` ETH
+The total cost - \`${roundUpToDecimalPlace(priceEth, 2)}\` ETH
 
 Send the bill amount to the below address within 20 minutes, starting from this message generation. Once paid, click on "I have paid" to verify payment. If 20 minutes have already passed then please restart using ${commandToRedo}. 
 

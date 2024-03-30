@@ -54,8 +54,6 @@ export async function sendTransaction(
         gasLimit: gasLimit,
       });
 
-      log(`Txn Hash - ${tx.hash}`);
-
       return tx;
     } catch (error) {
       log(`No transaction for ${amount} to ${to}, at attempt - ${attempt + 1}`);
