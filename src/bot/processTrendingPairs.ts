@@ -19,8 +19,13 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
     const pairData = await apiFetcher<PairsData>(
       `${TOKEN_DATA_URL}/${address}`
     );
+
+    const tokenAlreadyInTop15 = newTopTrendingTokens.some(
+      ([token]) => token === address
+    );
+
     const firstPair = pairData.data.pairs.at(0);
-    if (!firstPair) continue;
+    if (!firstPair || tokenAlreadyInTop15) continue;
 
     newTopTrendingTokens.push([address, firstPair]);
   }
