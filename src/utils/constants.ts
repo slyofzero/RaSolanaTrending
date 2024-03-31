@@ -35,15 +35,15 @@ export const splitPaymentsWith: {
   [key: string]: { address: string; share: number };
 } = {
   dev: {
-    address: "0x6cA3Cc89d26d4E1f5b0Cd84B6721ef979Cb61be2",
+    address: "0x0543730fac874d4d25A8cacfaE19559c2ee7e30d",
     share: 0.35,
   },
   main: {
-    address: "0x6cA3Cc89d26d4E1f5b0Cd84B6721ef979Cb61be2",
+    address: "0xC9C46598cc854f2857199e17f747e8A7F6f9c7E3",
     share: 0.55,
   },
   revenue: {
-    address: "0x6cA3Cc89d26d4E1f5b0Cd84B6721ef979Cb61be2",
+    address: "0x605fe1eE0FBF19f01FB0F6f7f6BADe121cDF2CA8",
     share: 0.1,
   },
 };
