@@ -27,10 +27,10 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   const { keyboard, scanLinksText } = generateTextFooter(token);
   const age = moment(pairCreatedAt).fromNow();
 
-  const solScanLink = `https://solscan.io/token/${token}`;
-  const pairLink = `https://solscan.io/account/${pairAddress}`;
-  const birdEyeLink = `https://birdeye.so/token/${token}?chain=solana`;
-  const dexSLink = `https://dexscreener.com/solana/${token}`;
+  const solScanLink = `https://basescan.org/token/${token}`;
+  const pairLink = `https://basescan.org/address/${pairAddress}`;
+  const birdEyeLink = `https://birdeye.so/token/${token}?chain=base`;
+  const dexSLink = `${DEXSCREEN_URL}/base/${token}`;
   const shortenedPairAddress = `${pairAddress.slice(
     0,
     3
@@ -57,7 +57,7 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   )}
 📊 [Birdeye](${birdEyeLink}) \\| [DexS](${dexSLink})
 
-💲 Price: \\$${cleanUpBotMessage(priceUsd)}
+💲 Price: \\$${cleanUpBotMessage(parseFloat(priceUsd))}
 🔗 DexID \\- \`${dexId}\`
 
 🪙 Token \\- \`${token}\`
@@ -96,7 +96,8 @@ export async function checkNewTrending() {
     const pastRank = previouslyTrendingTokens.findIndex(
       (storedToken) => storedToken === token
     );
-    if (index > pastRank) await sendNewTrendingMsg(tokenData, index);
+    if (index > pastRank && index > 10)
+      await sendNewTrendingMsg(tokenData, index);
   }
 }
 

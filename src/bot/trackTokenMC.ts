@@ -8,6 +8,7 @@ import { trendingTokens } from "@/vars/trending";
 import { teleBot } from "..";
 import { CHANNEL_ID } from "@/utils/env";
 import { errorHandler, log } from "@/utils/handlers";
+import { formatM2Number } from "@/utils/general";
 
 export async function trackTokenMC() {
   if (!CHANNEL_ID) {
@@ -40,8 +41,8 @@ export async function trackTokenMC() {
         name
       )} did *${cleanUpBotMessage(exactIncrease)}x* since trending🏆
 
-📍Discovery \\- $${initialMC}
-📍Currently \\- $${currentMC}
+📍Discovery \\- $${formatM2Number(initialMC)}
+📍Currently \\- $${formatM2Number(currentMC)}
 
 Trending at \\#${index + 1}
 
