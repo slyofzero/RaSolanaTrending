@@ -29,7 +29,7 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
 
   const solScanLink = `https://basescan.org/token/${token}`;
   const pairLink = `https://basescan.org/address/${pairAddress}`;
-  const birdEyeLink = `https://birdeye.so/token/${token}?chain=base`;
+  const dexToolsLink = `https://www.dextools.io/app/en/base/pair-explorer/${pairAddress}`;
   const dexSLink = `${DEXSCREEN_URL}/base/${token}`;
   const shortenedPairAddress = `${pairAddress.slice(
     0,
@@ -52,7 +52,7 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
 📈 Buys: ${formatM2Number(txns.h24.buys)} \\| 📉 Sells: ${formatM2Number(
     txns.h24.sells
   )}
-📊 [Birdeye](${birdEyeLink}) \\| [DexS](${dexSLink})
+📊 [DexT](${dexToolsLink}) \\| [DexS](${dexSLink})
 
 💲 Price: \\$${cleanUpBotMessage(parseFloat(priceUsd))}
 🔗 DexID \\- \`${dexId}\`
