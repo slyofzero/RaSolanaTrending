@@ -39,7 +39,7 @@ export async function trackTokenMC() {
 
       const message = `🏆${hardCleanUpBotMessage(
         name
-      )} did *${cleanUpBotMessage(exactIncrease)}x* since trending🏆
+      )} did *${cleanUpBotMessage(increase)}x* since trending🏆
 
 📍Discovery \\- $${formatM2Number(initialMC)}
 📍Currently \\- $${formatM2Number(currentMC)}
