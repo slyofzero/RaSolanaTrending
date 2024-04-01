@@ -37,9 +37,9 @@ export async function trackTokenMC() {
       const { scanLinksText, keyboard } = generateTextFooter(token);
       const { name } = tokenData.baseToken;
 
-      const message = `🏆${hardCleanUpBotMessage(
+      const message = `🏆 ${hardCleanUpBotMessage(
         name
-      )} did *${cleanUpBotMessage(increase)}x* since trending🏆
+      )} did *${cleanUpBotMessage(increase)}x* since trending 🏆
 
 📍Discovery \\- $${formatM2Number(initialMC)}
 📍Currently \\- $${formatM2Number(currentMC)}

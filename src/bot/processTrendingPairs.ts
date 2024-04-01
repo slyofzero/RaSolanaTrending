@@ -1,6 +1,7 @@
 import { PairData, PairsData, WSSPairData } from "@/types";
 import { TrendingTokens } from "@/types/trending";
 import { apiFetcher } from "@/utils/api";
+import { MCLimit } from "@/utils/constants";
 import { TOKEN_DATA_URL } from "@/utils/env";
 import { log } from "@/utils/handlers";
 import {
@@ -12,24 +13,32 @@ import {
 export async function processTrendingPairs(pairs: WSSPairData[]) {
   const newTopTrendingTokens: TrendingTokens = [];
 
-  for (const pair of pairs) {
-    // Only need 15 tokens at the top
-    if (newTopTrendingTokens.length >= 15) break;
+  let mcLimit = MCLimit;
+  while (newTopTrendingTokens.length < 15 && mcLimit <= 10_000_000) {
+    for (const pair of pairs) {
+      // Only need 15 tokens at the top
+      if (newTopTrendingTokens.length >= 15) break;
 
-    const { baseToken } = pair;
-    const { address } = baseToken;
-    const pairData = await apiFetcher<PairsData>(
-      `${TOKEN_DATA_URL}/${address}`
-    );
+      const { baseToken, marketCap } = pair;
 
-    const tokenAlreadyInTop15 = newTopTrendingTokens.some(
-      ([token]) => token === address
-    );
+      if (marketCap > mcLimit) continue;
 
-    const firstPair = pairData.data.pairs.at(0);
-    if (!firstPair || tokenAlreadyInTop15) continue;
+      const { address } = baseToken;
+      const pairData = await apiFetcher<PairsData>(
+        `${TOKEN_DATA_URL}/${address}`
+      );
 
-    newTopTrendingTokens.push([address, firstPair]);
+      const tokenAlreadyInTop15 = newTopTrendingTokens.some(
+        ([token]) => token === address
+      );
+
+      const firstPair = pairData.data.pairs.at(0);
+      if (!firstPair || tokenAlreadyInTop15) continue;
+
+      newTopTrendingTokens.push([address, firstPair]);
+    }
+
+    mcLimit *= 2;
   }
 
   for (const { slot, token } of toTrendTokens) {
