@@ -84,7 +84,7 @@ export async function checkNewTrending() {
   // Checking for new trending tokens
   for (const [index, [token, tokenData]] of trendingTokens.entries()) {
     const wasPreviouslyTrending = previouslyTrendingTokens.includes(token);
-    if (wasPreviouslyTrending) continue;
+    if (wasPreviouslyTrending || index >= 10) continue;
 
     await sendNewTrendingMsg(tokenData, index);
   }

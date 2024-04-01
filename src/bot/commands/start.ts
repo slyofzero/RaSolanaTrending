@@ -1,4 +1,3 @@
-import { BOT_USERNAME } from "@/utils/env";
 import { CommandContext, Context } from "grammy";
 import { trend } from "./trend";
 import { advertise } from "./advertise";
@@ -7,9 +6,11 @@ import { StoredReferral } from "@/types";
 import { referralLink } from "./referralLink";
 
 export async function startBot(ctx: CommandContext<Context>) {
-  const text = `Welcome to ${BOT_USERNAME}!
+  const text = `Welcome to TruTrend!
 
-Go to https://t.me/TruTrendSolana to view the trending Solana tokens.
+Use following links to view TruTrend services
+[*Solana Trending*](https://t.me/TruTrendSolana)
+[*Base Chain Trending*](https://t.me/TruTrendBase)
 
 /referral_link - To get your referral Link
 /advertise - To buy an ad slot on our bot

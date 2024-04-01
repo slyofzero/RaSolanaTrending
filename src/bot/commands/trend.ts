@@ -25,8 +25,6 @@ export async function selectTrendingDuration(ctx: CommandContext<Context>) {
 
   if (!isValidEthAddress(token || "")) {
     return ctx.reply("Please enter a proper token address");
-  } else if (trendingTokens.some(([storedToken]) => storedToken === token)) {
-    return ctx.reply(`Token ${token} is already trending`);
   }
 
   const tokenData = await apiFetcher<PairsData>(`${TOKEN_DATA_URL}/${token}`);

@@ -103,7 +103,7 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
     const slotText = isTrendingPayment ? "trending" : "ad";
     const paymentCategory = isTrendingPayment ? "trendingPayment" : "adPayment";
     let text = `You have selected ${slotText} slot ${slot} for ${duration} hours.
-The total cost - \`${roundUpToDecimalPlace(priceEth, 2)}\` ETH
+The total cost - \`${roundUpToDecimalPlace(priceEth, 4)}\` ETH
 
 Send the bill amount to the below address within 20 minutes, starting from this message generation. Once paid, click on "I have paid" to verify payment. If 20 minutes have already passed then please restart using ${commandToRedo}. 
 
@@ -266,7 +266,7 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
         });
 
         const confirmationText = `You have purchased a trending slot ${slot} for ${duration} hours.
-Payment received of - \`${roundUpToDecimalPlace(amount, 2)}\` ETH
+Payment received of - \`${roundUpToDecimalPlace(amount, 4)}\` ETH
 
 Transaction hash for your payment is \`${hash}\`. Your token would be visible, and available to be scanned the next time the bot updates the trending message, so it may take a minute or two. In case of any doubts please reach out to the admins of the bot for any query.
 
