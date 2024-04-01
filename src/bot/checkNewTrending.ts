@@ -40,11 +40,8 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   const message = `*${hardCleanedSymbol} trending at \\#${index + 1}*
 
 📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
-⚠ Mutable Metadata
-
 📌 Pair: [${shortenedPairAddress}](${pairLink})
-👤 Owner: RENOUNCED
-🔸 Chain: SOL \\| ⚖️ Age: ${age}
+🔸 Chain: Base \\| ⚖️ Age: ${age}
 
 💰 MC: \\$${`${formatM2Number(fdv)}`} \\| Liq: \\$${formatM2Number(
     liquidity.usd
