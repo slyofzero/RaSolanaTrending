@@ -96,7 +96,7 @@ export async function checkNewTrending() {
     const pastRank = previouslyTrendingTokens.findIndex(
       (storedToken) => storedToken === token
     );
-    if (index > pastRank && index > 10)
+    if (index > pastRank && index < 10)
       await sendNewTrendingMsg(tokenData, index);
   }
 }
