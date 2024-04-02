@@ -70,7 +70,9 @@ export async function referralLink(
         collectionName: "referral",
         updates: { address },
         id: referralLinkData.id || "",
-      }).then(() => log(`Referral address updated for ${chatId}`));
+      }).then(() => {
+        log(`Referral address updated for ${chatId}`);
+      });
 
       delete userState[chatId];
 
@@ -89,6 +91,8 @@ export async function referralLink(
       return;
     }
   }
+
+  if (messageText === "/start" && !match) return false;
 
   const { referralText, address: storedAddress } = referralLinkData;
   const commisionShare = referralCommisionFee * 100;

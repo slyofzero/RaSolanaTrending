@@ -6,15 +6,15 @@ import { StoredReferral } from "@/types";
 import { referralLink } from "./referralLink";
 
 export async function startBot(ctx: CommandContext<Context>) {
-  const text = `Welcome to TruTrend!
+  const text = `Welcome to TruTrend\\!
 
 Use following links to view TruTrend services
 [*Solana Trending*](https://t.me/TruTrendSolana)
 [*Base Chain Trending*](https://t.me/TruTrendBase)
 
-/referral_link - To get your referral Link
-/advertise - To buy an ad slot on our bot
-/trend - To trend your token`;
+/referral\\_link \\- To get your referral Link
+/advertise \\- To buy an ad slot on our bot
+/trend \\- To trend your token`;
 
   const { match } = ctx;
 
@@ -48,6 +48,7 @@ Use following links to view TruTrend services
       return ctx.reply(text, {
         // @ts-expect-error Type not found
         disable_web_page_preview: true,
+        parse_mode: "MarkdownV2",
       });
     }
   }
