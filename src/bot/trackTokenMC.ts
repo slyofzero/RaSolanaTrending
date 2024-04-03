@@ -9,6 +9,7 @@ import { teleBot } from "..";
 import { CHANNEL_ID } from "@/utils/env";
 import { errorHandler, log } from "@/utils/handlers";
 import { formatM2Number } from "@/utils/general";
+import { DEXSCREEN_URL } from "@/utils/constants";
 
 export async function trackTokenMC() {
   if (!CHANNEL_ID) {
@@ -17,7 +18,7 @@ export async function trackTokenMC() {
 
   // Checking prices for trending tokens and adding a token to tracking if not present
   for (const [index, [token, tokenData]] of trendingTokens.entries()) {
-    const currentMC = tokenData.fdv;
+    const { fdv: currentMC, pairAddress } = tokenData;
     const tokenTrackingData = tokenMCTracking[token];
     if (!tokenTrackingData) {
       tokenMCTracking[token] = { initialMC: currentMC, pastBenchmark: 1 };
@@ -27,6 +28,8 @@ export async function trackTokenMC() {
     const { initialMC, pastBenchmark } = tokenTrackingData;
     const exactIncrease = Number((currentMC / initialMC).toFixed(2));
     const increase = Math.floor(exactIncrease);
+    const dexToolsLink = `https://www.dextools.io/app/en/base/pair-explorer/${pairAddress}`;
+    const dexSLink = `${DEXSCREEN_URL}/base/${token}`;
 
     if (increase > pastBenchmark) {
       tokenMCTracking[token] = {
@@ -46,6 +49,7 @@ export async function trackTokenMC() {
 
 Trending at \\#${index + 1}
 
+📊 [*DexT*](${dexToolsLink}) \\| [*DexS*](${dexSLink})
 ${scanLinksText}`;
 
       try {
