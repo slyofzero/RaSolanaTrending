@@ -17,7 +17,7 @@ import {
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import { NETWORK_NAME } from "@/utils/env";
+import { LOGS_CHANNEL_ID, NETWORK_NAME } from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -28,6 +28,7 @@ import { syncToTrend } from "@/vars/trending";
 import { Timestamp } from "firebase-admin/firestore";
 import { CallbackQueryContext, Context, InlineKeyboard } from "grammy";
 import { customAlphabet } from "nanoid";
+import { teleBot } from "..";
 const alphabet =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 const length = 10; // You can change the length as needed
@@ -224,9 +225,15 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
 
     if (!storedAccount) {
       log(`Account for payment hash ${hash} not found`);
-      return await ctx.reply(
-        `The account your payment was sent to wasn't found. Please contact the admins and provide them the hash - ${hash}.`
-      );
+      const text = `The account your payment was sent to wasn't found. Please contact the admins and provide them the hash - \`${hash}\`.`;
+      teleBot.api
+        .sendMessage(LOGS_CHANNEL_ID || "", cleanUpBotMessage(text), {
+          parse_mode: "MarkdownV2",
+        })
+        .catch((e) => errorHandler(e));
+      return await ctx.reply(cleanUpBotMessage(text), {
+        parse_mode: "MarkdownV2",
+      });
     }
 
     const { id: accountID, secretKey: encryptedSecretKey } = storedAccount;
@@ -251,6 +258,10 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
         const logText = `Transaction ${hash} for trend verified with payment of ${amount} ETH`;
         log(logText);
         const currentTimestamp = Timestamp.now();
+
+        teleBot.api
+          .sendMessage(LOGS_CHANNEL_ID || "", cleanUpBotMessage(logText))
+          .catch((e) => errorHandler(e));
 
         updateDocumentById({
           updates: {
@@ -306,7 +317,17 @@ Address Payment Received at - ${sentTo}`;
       }
     }
 
-    const failedText = `Your payment wasn't confirmed. Please contact the admins and provide your payment hash - ${hash}`;
+    log(`Account for payment hash ${hash} not found`);
+    const failedText = `Your payment wasn't confirmed. Please contact the admins and provide your payment hash - \`${hash}\``;
+    teleBot.api
+      .sendMessage(
+        LOGS_CHANNEL_ID || "",
+        cleanUpBotMessage(cleanUpBotMessage(failedText)),
+        {
+          parse_mode: "MarkdownV2",
+        }
+      )
+      .catch((e) => errorHandler(e));
     ctx.reply(failedText).catch((e) => errorHandler(e));
   } catch (error) {
     errorHandler(error);
