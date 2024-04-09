@@ -4,7 +4,7 @@ import { StoredReferral } from "@/types";
 export async function referralAddressRepeated(address: string) {
   const [referralData] = await getDocument<StoredReferral>({
     collectionName: "referral",
-    queries: [["address", "==", address]],
+    queries: [["walletAddress", "==", address]],
   });
 
   return referralData;

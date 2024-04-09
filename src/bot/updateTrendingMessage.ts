@@ -27,7 +27,7 @@ export async function updateTrendingMessage() {
       const priceChangeh24 = priceChange.h24;
       const icon = icons[index] || "🔥";
 
-      const url = `${DEXSCREEN_URL}/base/${token}`;
+      const url = `${DEXSCREEN_URL}/solana/${token}`;
       const scanUrl = `https://t.me/ttfbotbot?start=${token}`;
       const buyUrl = `https://t.me/magnum_trade_bot?start=PHryLEnW_snipe_${token}`;
 

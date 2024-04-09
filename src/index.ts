@@ -13,6 +13,7 @@ import { trackTokenMC } from "./bot/trackTokenMC";
 import { checkNewTrending, sendToTrendTokensMsg } from "./bot/checkNewTrending";
 import { syncAdvertisements } from "./vars/advertisements";
 import { cleanUpExpired } from "./bot/cleanUp";
+import { rpcConfig } from "./rpc";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -24,6 +25,7 @@ if (!DEX_URL) {
 }
 
 (async function () {
+  rpcConfig();
   teleBot.start();
   log("Telegram bot setup");
   initiateBotCommands();

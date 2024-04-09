@@ -4,7 +4,6 @@ import {
   getDocumentById,
   updateDocumentById,
 } from "@/firebase";
-import { web3 } from "@/rpc";
 import { StoredAdvertisement, StoredReferral } from "@/types";
 import { StoredAccount } from "@/types/accounts";
 import { StoredToTrend } from "@/types/trending";
@@ -17,7 +16,7 @@ import {
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import { LOGS_CHANNEL_ID, NETWORK_NAME } from "@/utils/env";
+import { LOGS_CHANNEL_ID } from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -29,6 +28,9 @@ import { Timestamp } from "firebase-admin/firestore";
 import { CallbackQueryContext, Context, InlineKeyboard } from "grammy";
 import { customAlphabet } from "nanoid";
 import { teleBot } from "..";
+import web3, { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { solanaConnection } from "@/rpc";
+
 const alphabet =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 const length = 10; // You can change the length as needed
@@ -99,16 +101,14 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
     }
 
     const ethPrice = (await apiFetcher<any>(ethPriceApi)).data.price;
-    const priceEth = parseFloat((priceUsd / ethPrice).toFixed(8));
+    const priceSol = parseFloat((priceUsd / ethPrice).toFixed(8));
 
     const slotText = isTrendingPayment ? "trending" : "ad";
     const paymentCategory = isTrendingPayment ? "trendingPayment" : "adPayment";
     let text = `You have selected ${slotText} slot ${slot} for ${duration} hours.
-The total cost - \`${roundUpToDecimalPlace(priceEth, 4)}\` ETH
+The total cost - \`${roundUpToDecimalPlace(priceSol, 4)}\` SOL
 
 Send the bill amount to the below address within 20 minutes, starting from this message generation. Once paid, click on "I have paid" to verify payment. If 20 minutes have already passed then please restart using ${commandToRedo}. 
-
-*Only send ETH on ${NETWORK_NAME}*, and no other network
 
 Address - \`${account}\``;
 
@@ -129,7 +129,7 @@ Address - \`${account}\``;
     let dataToAdd: StoredToTrend | StoredAdvertisement = {
       paidAt: Timestamp.now(),
       sentTo: account,
-      amount: priceEth,
+      amount: priceSol * LAMPORTS_PER_SOL,
       slot: slot,
       duration: duration,
       hash,
@@ -238,7 +238,9 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
 
     const { id: accountID, secretKey: encryptedSecretKey } = storedAccount;
     const secretKey = decrypt(encryptedSecretKey);
-    const account = web3.eth.accounts.privateKeyToAccount(secretKey);
+    const account = web3.Keypair.fromSecretKey(
+      new Uint8Array(JSON.parse(secretKey))
+    );
 
     attemptsCheck: for (const attempt_number of Array.from(Array(20).keys())) {
       try {
@@ -247,15 +249,17 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
         );
 
         // Checking if payment was made
-        const balance = await web3.eth.getBalance(account.address);
+        const balance = await solanaConnection.getBalance(account.publicKey);
 
-        if (balance < Number(web3.utils.toWei(amount, "ether"))) {
+        if (balance < amount) {
           log(`Transaction amount doesn't match`);
           await sleep(30000);
           continue attemptsCheck;
         }
 
-        const logText = `Transaction ${hash} for trend verified with payment of ${amount} ETH`;
+        const amountSol = amount / LAMPORTS_PER_SOL;
+
+        const logText = `Transaction ${hash} for trend verified with payment of ${amountSol} SOL`;
         log(logText);
         const currentTimestamp = Timestamp.now();
 
@@ -277,7 +281,7 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
         });
 
         const confirmationText = `You have purchased a trending slot ${slot} for ${duration} hours.
-Payment received of - \`${roundUpToDecimalPlace(amount, 4)}\` ETH
+Payment received of - \`${roundUpToDecimalPlace(amountSol, 4)}\` SOL
 
 Transaction hash for your payment is \`${hash}\`. Your token would be visible, and available to be scanned the next time the bot updates the trending message, so it may take a minute or two. In case of any doubts please reach out to the admins of the bot for any query.
 

@@ -12,7 +12,7 @@ import {
 import moment from "moment";
 import { teleBot } from "..";
 import { errorHandler, log } from "@/utils/handlers";
-import { CHANNEL_ID } from "@/utils/env";
+import { CHANNEL_ID, NETWORK_NAME } from "@/utils/env";
 import { PairData, PairsData } from "@/types";
 import { apiFetcher } from "@/utils/api";
 import { DEXSCREEN_URL } from "@/utils/constants";
@@ -27,10 +27,11 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   const { keyboard, scanLinksText } = generateTextFooter(token);
   const age = moment(pairCreatedAt).fromNow();
 
-  const solScanLink = `https://basescan.org/token/${token}`;
-  const pairLink = `https://basescan.org/address/${pairAddress}`;
-  const dexToolsLink = `https://www.dextools.io/app/en/base/pair-explorer/${pairAddress}`;
-  const dexSLink = `${DEXSCREEN_URL}/base/${token}`;
+  const solScanLink = `https://solscan.io/token/${token}`;
+  const pairLink = `https://solscan.io/account/${pairAddress}`;
+  const birdEyeLink = `https://birdeye.so/token/${token}?chain=solana`;
+  const dexSLink = `https://dexscreener.com/solana/${token}`;
+
   const shortenedPairAddress = `${pairAddress.slice(
     0,
     3
@@ -41,7 +42,7 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
 
 📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
 📌 Pair: [${shortenedPairAddress}](${pairLink})
-🔸 Chain: Base \\| ⚖️ Age: ${age}
+🔸 Chain: ${NETWORK_NAME} \\| ⚖️ Age: ${age}
 
 💰 MC: \\$${`${formatM2Number(fdv)}`} \\| Liq: \\$${formatM2Number(
     liquidity.usd
@@ -52,7 +53,7 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
 📈 Buys: ${formatM2Number(txns.h24.buys)} \\| 📉 Sells: ${formatM2Number(
     txns.h24.sells
   )}
-📊 [DexT](${dexToolsLink}) \\| [DexS](${dexSLink})
+📊 [Birdeye](${birdEyeLink}) \\| [DexS](${dexSLink})
 
 💲 Price: \\$${cleanUpBotMessage(parseFloat(priceUsd))}
 🔗 DexID \\- \`${dexId}\`

@@ -5,7 +5,7 @@ import { referralCommisionFee } from "@/utils/constants";
 import { referralAddressRepeated } from "@/utils/db";
 import { BOT_URL } from "@/utils/env";
 import { log } from "@/utils/handlers";
-import { isValidEthAddress } from "@/utils/web3";
+import { isValidSolAddress } from "@/utils/web3";
 import { userState } from "@/vars/state";
 import {
   CallbackQueryContext,
@@ -44,16 +44,16 @@ export async function referralLink(
     }).then(() => log(`Referral data added for ${chatId}`));
 
     return;
-  } else if (messageText?.startsWith("/") && !referralLinkData.address) {
+  } else if (messageText?.startsWith("/") && !referralLinkData.walletAddress) {
     userState[chatId] = "referralAddress";
 
     return ctx.reply(
-      "You don't have a referral link yet. Pass a Base ETH address in the next message. You will receive your referral fees in that address."
+      "You don't have a referral link yet. Pass a Solana address in the next message. You will receive your referral fees in that address."
     );
   }
   // Making sure the message wasn't a command use
   else if (address && !address.startsWith("/")) {
-    if (isValidEthAddress(address)) {
+    if (isValidSolAddress(address)) {
       // To check for duplicate referral addresses
       const addressInUse = await referralAddressRepeated(address);
       if (addressInUse) {
@@ -68,7 +68,7 @@ export async function referralLink(
 
       updateDocumentById<StoredReferral>({
         collectionName: "referral",
-        updates: { address },
+        updates: { walletAddress: address },
         id: referralLinkData.id || "",
       }).then(() => {
         log(`Referral address updated for ${chatId}`);
@@ -84,7 +84,7 @@ export async function referralLink(
     }
     // This check here because if a user use's a referral link even after theirs is already set, the refferer comes as `match`
     else if (!referrer) {
-      return ctx.reply("Please pass a valid Base ETH address");
+      return ctx.reply("Please pass a valid SOL address");
     }
     // So the user from the above case doesn't get both the /start and /referral_link msg
     else {
@@ -94,7 +94,7 @@ export async function referralLink(
 
   if (messageText === "/start" && !match) return false;
 
-  const { referralText, address: storedAddress } = referralLinkData;
+  const { referralText, walletAddress: storedAddress } = referralLinkData;
   const commisionShare = referralCommisionFee * 100;
   const referral_link = `${BOT_URL}?start=${referralText || chatId}`;
   const text = `Your referral link is - \n\`${referral_link}\`\n\nAny payments the user that is introduced to our bot using your link makes would entitle you to ${commisionShare}% of that amount and would be sent to the wallet address mentioned below. Anytime a purchase is made, you'll be notified with the fees that was sent to your wallet.\n\nWallet - \`${
@@ -139,7 +139,7 @@ export async function setReferralText(ctx: HearsContext<Context>) {
       collectionName: "referral",
     });
 
-    const { address, id } = referralData;
+    const { walletAddress: address, id } = referralData;
 
     if (referralData) {
       await updateDocumentById({

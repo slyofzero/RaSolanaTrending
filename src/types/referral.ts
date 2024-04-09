@@ -1,7 +1,7 @@
 export interface StoredReferral {
   id?: string;
   userId: number;
-  address?: string;
+  walletAddress?: string;
   referrer?: number;
   referralText?: string;
 }

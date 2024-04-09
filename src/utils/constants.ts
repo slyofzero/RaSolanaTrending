@@ -35,15 +35,15 @@ export const splitPaymentsWith: {
   [key: string]: { address: string; share: number };
 } = {
   dev: {
-    address: "0x0543730fac874d4d25A8cacfaE19559c2ee7e30d",
+    address: "F4Kp3i15C6vxNeP9p83yqoyDxa5nrjF1mbF2dECEiPvD",
     share: 0.35,
   },
   main: {
-    address: "0xC9C46598cc854f2857199e17f747e8A7F6f9c7E3",
+    address: "3RDaDhepvfiARbYEQ9nUMQNdjVYVDNbohZsWokh9ZRGu",
     share: 0.55,
   },
   revenue: {
-    address: "0x605fe1eE0FBF19f01FB0F6f7f6BADe121cDF2CA8",
+    address: "6pML9ExthZuY36J4aQFphK7ms6iLppzgfetRwzC64hYz",
     share: 0.1,
   },
 };
@@ -51,7 +51,7 @@ export const splitPaymentsWith: {
 export const urlRegex =
   /^(?:https?|ftp):\/\/(?:www\.)?[\w-]+\.[a-z]{2,}(?:\/[\w-]*)*\/?(?:\?[^#\s]*)?$/;
 export const ethPriceApi =
-  "https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT";
+  "https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT";
 
 export const DEXSCREEN_URL = "https://dexscreener.com";
 export const residueEth = ethers.utils.parseEther("0.000035").toBigInt();

@@ -18,7 +18,7 @@ export async function trackTokenMC() {
 
   // Checking prices for trending tokens and adding a token to tracking if not present
   for (const [index, [token, tokenData]] of trendingTokens.entries()) {
-    const { fdv: currentMC, pairAddress } = tokenData;
+    const { fdv: currentMC } = tokenData;
     const tokenTrackingData = tokenMCTracking[token];
     if (!tokenTrackingData) {
       tokenMCTracking[token] = { initialMC: currentMC, pastBenchmark: 1 };
@@ -28,8 +28,8 @@ export async function trackTokenMC() {
     const { initialMC, pastBenchmark } = tokenTrackingData;
     const exactIncrease = Number((currentMC / initialMC).toFixed(2));
     const increase = Math.floor(exactIncrease);
-    const dexToolsLink = `https://www.dextools.io/app/en/base/pair-explorer/${pairAddress}`;
-    const dexSLink = `${DEXSCREEN_URL}/base/${token}`;
+    const birdEyeLink = `https://birdeye.so/token/${token}?chain=solana`;
+    const dexSLink = `${DEXSCREEN_URL}/solana/${token}`;
 
     if (increase > pastBenchmark) {
       tokenMCTracking[token] = {
@@ -49,7 +49,7 @@ export async function trackTokenMC() {
 
 Trending at \\#${index + 1}
 
-📊 [*DexT*](${dexToolsLink}) \\| [*DexS*](${dexSLink})
+📊 [*Birdeye*](${birdEyeLink}) \\| [*DexS*](${dexSLink})
 ${scanLinksText}`;
 
       try {

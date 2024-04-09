@@ -1,72 +1,84 @@
 import { ethers } from "ethers";
 import { errorHandler, log } from "./handlers";
-import {
-  referralCommisionFee,
-  residueEth,
-  splitPaymentsWith,
-} from "./constants";
-import { provider, web3 } from "@/rpc";
-import { sleep } from "./time";
+import { referralCommisionFee, splitPaymentsWith } from "./constants";
 import { getDocument } from "@/firebase";
 import { StoredReferral } from "@/types";
-import { floatToBigInt } from "./general";
+import nacl from "tweetnacl";
+import { solanaConnection } from "@/rpc";
+import web3, { PublicKey } from "@solana/web3.js";
 
-export function isValidEthAddress(address: string) {
-  const regex = /^0x[a-fA-F0-9]{40}$/;
-  return regex.test(address);
+export function isValidSolAddress(address: string) {
+  try {
+    new PublicKey(address);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export function generateAccount() {
-  const wallet = ethers.Wallet.createRandom();
-
+  const randomBytes = ethers.utils.randomBytes(32);
+  const mnemonic = ethers.utils.entropyToMnemonic(randomBytes);
+  const seed = ethers.utils.mnemonicToSeed(mnemonic);
+  const hex = Uint8Array.from(Buffer.from(seed));
+  const keyPair = nacl.sign.keyPair.fromSeed(hex.slice(0, 32));
+  const { publicKey, secretKey } = new web3.Keypair(keyPair);
   const data = {
-    publicKey: wallet.address,
-    secretKey: wallet.privateKey,
+    publicKey: publicKey.toString(),
+    secretKey: `[${secretKey.toString()}]`,
   };
   return data;
 }
 
 export async function sendTransaction(
   secretKey: string,
-  amount: bigint,
-  to: string,
-  full?: boolean
+  amount: number,
+  to?: string
 ) {
-  for (const attempt of Array.from(Array(10).keys())) {
-    try {
-      const wallet = new ethers.Wallet(secretKey, provider);
-      const gasPrice = await web3.eth.getGasPrice();
-      const gasLimit = (
-        await provider.estimateGas({
-          to: to,
-          value: amount,
-        })
-      ).toBigInt();
+  let attempts = 0;
 
-      if (full) amount = amount - residueEth;
-      if (amount <= 0) return false;
+  try {
+    if (!to) {
+      return false;
+    }
 
-      const valueAfterGas = amount - gasLimit * gasPrice;
-      const tx = await wallet.sendTransaction({
-        to: to,
-        value: valueAfterGas,
-        gasPrice: gasPrice,
-        gasLimit: gasLimit,
-      });
+    attempts += 1;
 
-      return tx;
-    } catch (error) {
-      log(`No transaction for ${amount} to ${to}, at attempt - ${attempt + 1}`);
-      await sleep(10000);
+    const { lamportsPerSignature } = (
+      await solanaConnection.getRecentBlockhash("confirmed")
+    ).feeCalculator;
+
+    const secretKeyArray = new Uint8Array(JSON.parse(secretKey));
+    const account = web3.Keypair.fromSecretKey(secretKeyArray);
+    const toPubkey = new PublicKey(to);
+
+    const transaction = new web3.Transaction().add(
+      web3.SystemProgram.transfer({
+        fromPubkey: account.publicKey,
+        toPubkey,
+        lamports: amount - lamportsPerSignature,
+      })
+    );
+
+    const signature = await web3.sendAndConfirmTransaction(
+      solanaConnection,
+      transaction,
+      [account]
+    );
+    return signature;
+  } catch (error) {
+    log(`No transaction for ${amount} to ${to}`);
+    errorHandler(error);
+
+    if (attempts < 1) {
+      sendTransaction(secretKey, amount, to);
     }
   }
-
-  log(`Transaction of ${amount} wasn't successful`);
 }
 
 export async function splitPayment(
   secretKey: string,
-  totalPaymentAmount: bigint,
+  totalPaymentAmount: number,
   referrer?: number
 ) {
   try {
@@ -77,24 +89,25 @@ export async function splitPayment(
         queries: [["referrer", "==", referrer]],
       });
 
-      if (referralData.address) referralAddress = referralData.address;
+      if (referralData.walletAddress)
+        referralAddress = referralData.walletAddress;
     }
 
     const { dev, main, revenue } = splitPaymentsWith;
 
     // ------------------------------ Calculating shares ------------------------------
-    const devShare = floatToBigInt(dev.share * Number(totalPaymentAmount));
+    const devShare = dev.share * totalPaymentAmount;
     const shareLeft = totalPaymentAmount - devShare;
 
     const referralShare = referralAddress
-      ? floatToBigInt(Number(shareLeft) * referralCommisionFee)
-      : BigInt(0);
-    const revenueShare = floatToBigInt(Number(shareLeft) * revenue.share);
+      ? shareLeft * referralCommisionFee
+      : 0;
+    const revenueShare = shareLeft * revenue.share;
     const mainShare = shareLeft - (referralShare + revenueShare);
 
     // ------------------------------ Txns ------------------------------
     const devTx = await sendTransaction(secretKey, devShare, dev.address);
-    if (devTx) log(`Dev share ${devShare} sent ${devTx.hash}`);
+    if (devTx) log(`Dev share ${devShare} sent ${devTx}`);
 
     if (referralAddress) {
       const refTx = await sendTransaction(
@@ -102,14 +115,14 @@ export async function splitPayment(
         referralShare,
         referralAddress
       );
-      if (refTx) log(`Referral Share ${referralShare} sent ${refTx.hash}`);
+      if (refTx) log(`Referral Share ${referralShare} sent ${refTx}`);
     }
 
     const revTx = await sendTransaction(secretKey, revenueShare, revenue.address); // prettier-ignore
-    if (revTx) log(`Revenue share ${revenueShare} sent ${revTx.hash}`);
+    if (revTx) log(`Revenue share ${revenueShare} sent ${revTx}`);
 
-    const mainTx = await sendTransaction(secretKey, mainShare, main.address, true); // prettier-ignore
-    if (mainTx) log(`Main share ${mainShare} sent ${mainTx.hash}`);
+    const mainTx = await sendTransaction(secretKey, mainShare, main.address); // prettier-ignore
+    if (mainTx) log(`Main share ${mainShare} sent ${mainTx}`);
   } catch (error) {
     errorHandler(error);
   }
