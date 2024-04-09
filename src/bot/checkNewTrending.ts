@@ -22,41 +22,30 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
     return log("Channel ID or PINNED_MSG_ID is undefined");
   }
 
-  const { baseToken, priceUsd, priceChange, txns, pairAddress, liquidity, volume, dexId, fdv, pairCreatedAt} = tokenData; // prettier-ignore
+  const { baseToken, priceUsd, priceChange, liquidity, volume, fdv, pairCreatedAt} = tokenData; // prettier-ignore
   const { name, symbol, address: token } = baseToken;
   const { keyboard, scanLinksText } = generateTextFooter(token);
   const age = moment(pairCreatedAt).fromNow();
 
   const solScanLink = `https://solscan.io/token/${token}`;
-  const pairLink = `https://solscan.io/account/${pairAddress}`;
   const birdEyeLink = `https://birdeye.so/token/${token}?chain=solana`;
   const dexSLink = `https://dexscreener.com/solana/${token}`;
 
-  const shortenedPairAddress = `${pairAddress.slice(
-    0,
-    3
-  )}\\.\\.\\.${pairAddress.slice(pairAddress.length - 3, pairAddress.length)}`;
   const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
 
   const message = `*${hardCleanedSymbol} trending at \\#${index + 1}*
 
 📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
-📌 Pair: [${shortenedPairAddress}](${pairLink})
 🔸 Chain: ${NETWORK_NAME} \\| ⚖️ Age: ${age}
 
+💲 Price: \\$${cleanUpBotMessage(parseFloat(priceUsd))}
 💰 MC: \\$${`${formatM2Number(fdv)}`} \\| Liq: \\$${formatM2Number(
     liquidity.usd
   )}
 🚀 24h: ${formatM2Number(priceChange.h24)}% \\| V: \\$${formatM2Number(
     volume.h24
   )}
-📈 Buys: ${formatM2Number(txns.h24.buys)} \\| 📉 Sells: ${formatM2Number(
-    txns.h24.sells
-  )}
 📊 [Birdeye](${birdEyeLink}) \\| [DexS](${dexSLink})
-
-💲 Price: \\$${cleanUpBotMessage(parseFloat(priceUsd))}
-🔗 DexID \\- \`${dexId}\`
 
 🪙 Token \\- \`${token}\`
 
