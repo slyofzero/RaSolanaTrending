@@ -70,9 +70,7 @@ export async function sendTransaction(
     log(`No transaction for ${amount} to ${to}`);
     errorHandler(error);
 
-    if (attempts < 1) {
-      sendTransaction(secretKey, amount, to);
-    }
+    sendTransaction(secretKey, amount, to);
   }
 }
 
