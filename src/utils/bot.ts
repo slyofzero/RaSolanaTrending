@@ -35,8 +35,11 @@ export function hardCleanUpBotMessage(text: any) {
 
 export function generateAdvertisementKeyboard() {
   let keyboard = new InlineKeyboard();
+  const showSecondSlot = advertisements.some(({ slot }) => slot === 2);
 
   for (const index of Array.from(Array(2).keys())) {
+    if (index === 1 && !showSecondSlot) break;
+
     const adSlot = advertisements.find(
       ({ slot }) => Number(slot) === index + 1
     );
