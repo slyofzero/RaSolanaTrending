@@ -16,49 +16,66 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
   let mcLimit = MCLimit;
   while (newTopTrendingTokens.length < 15 && mcLimit <= 10_000_000) {
     for (const pair of pairs) {
-      // Only need 15 tokens at the top
-      if (newTopTrendingTokens.length >= 15) break;
+      try {
+        // Only need 15 tokens at the top
+        if (newTopTrendingTokens.length >= 15) break;
 
-      const { baseToken, marketCap } = pair;
+        const { baseToken, marketCap } = pair;
 
-      if (marketCap > mcLimit) continue;
+        if (marketCap > mcLimit) continue;
 
-      const { address } = baseToken;
-      const pairData = await apiFetcher<PairsData>(
-        `${TOKEN_DATA_URL}/${address}`
-      );
+        const { address } = baseToken;
+        const pairData = await apiFetcher<PairsData>(
+          `${TOKEN_DATA_URL}/${address}`
+        );
 
-      const tokenAlreadyInTop15 = newTopTrendingTokens.some(
-        ([token]) => token === address
-      );
+        const tokenAlreadyInTop15 = newTopTrendingTokens.some(
+          ([token]) => token === address
+        );
 
-      const firstPair = pairData.data.pairs.at(0);
-      if (!firstPair || tokenAlreadyInTop15) continue;
+        const firstPair = pairData.data.pairs.at(0);
+        if (!firstPair || tokenAlreadyInTop15) continue;
 
-      newTopTrendingTokens.push([address, firstPair]);
+        newTopTrendingTokens.push([address, firstPair]);
+      } catch (error) {
+        const err = error as Error;
+        log(err.message);
+        continue;
+      }
     }
 
     mcLimit *= 2;
   }
 
   for (const { slot, token } of toTrendTokens) {
-    const alreadyTrendingRank = newTopTrendingTokens.findIndex(
-      ([storedToken]) => storedToken === token
-    );
+    try {
+      const alreadyTrendingRank = newTopTrendingTokens.findIndex(
+        ([storedToken]) => storedToken === token
+      );
 
-    if (alreadyTrendingRank !== -1) {
-      if (slot < alreadyTrendingRank) {
-        const [tokenData] = newTopTrendingTokens.splice(alreadyTrendingRank, 1);
-        newTopTrendingTokens.splice(slot, 0, tokenData);
+      if (alreadyTrendingRank !== -1) {
+        if (slot < alreadyTrendingRank) {
+          const [tokenData] = newTopTrendingTokens.splice(
+            alreadyTrendingRank,
+            1
+          );
+          newTopTrendingTokens.splice(slot, 0, tokenData);
+        }
+        continue;
       }
+
+      const pairData = await apiFetcher<PairsData>(
+        `${TOKEN_DATA_URL}/${token}`
+      );
+      const firstPair = pairData.data.pairs.at(0);
+      if (!firstPair) continue;
+      const newTrendingPair: [string, PairData] = [token, firstPair];
+      newTopTrendingTokens.splice(slot - 1, 0, newTrendingPair);
+    } catch (error) {
+      const err = error as Error;
+      log(err.message);
       continue;
     }
-
-    const pairData = await apiFetcher<PairsData>(`${TOKEN_DATA_URL}/${token}`);
-    const firstPair = pairData.data.pairs.at(0);
-    if (!firstPair) continue;
-    const newTrendingPair: [string, PairData] = [token, firstPair];
-    newTopTrendingTokens.splice(slot - 1, 0, newTrendingPair);
   }
 
   setTopTrendingTokens(newTopTrendingTokens);

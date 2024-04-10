@@ -12,7 +12,7 @@ export const wssHeaders = {
   "Sec-WebSocket-Version": "13",
   "Accept-Encoding": "gzip, deflate, br",
   "Accept-Language": "en-US,en;q=0.5",
-  "Sec-WebSocket-Key": "M5uJvoUZgvRAXcms5eBsnw==",
+  "Sec-WebSocket-Key": "08ihcFbLdi17Qcysugzvdw==",
   "Sec-WebSocket-Extensions": "permessage-deflate",
 };
 
