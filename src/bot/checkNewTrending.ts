@@ -91,9 +91,16 @@ export async function checkNewTrending() {
 export async function sendToTrendTokensMsg() {
   for (const toTrendData of toTrendTokens) {
     const { token, slot } = toTrendData;
-    const tokenData = await apiFetcher<PairsData>(`${DEXSCREEN_URL}/${token}`);
-    const firstPair = tokenData.data.pairs.at(0);
+    try {
+      const tokenData = await apiFetcher<PairsData>(
+        `${DEXSCREEN_URL}/${token}`
+      );
+      const firstPair = tokenData.data.pairs.at(0);
 
-    if (firstPair) await sendNewTrendingMsg(firstPair, slot - 1);
+      if (firstPair) await sendNewTrendingMsg(firstPair, slot - 1);
+    } catch (error) {
+      log(`Error in getting data for token - ${token}`);
+      errorHandler(error);
+    }
   }
 }
