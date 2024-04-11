@@ -17,6 +17,8 @@ export const {
   CHANNEL_ID,
   NETWORK_NAME,
   LOGS_CHANNEL_ID,
+  API_AUTH_KEY,
+  PORT,
 } = process.env;
 
 export const BOT_URL = `https://t.me/${BOT_USERNAME}`;

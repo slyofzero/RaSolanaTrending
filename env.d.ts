@@ -14,6 +14,8 @@ declare global {
       PINNED_MSG_ID: string | undefined;
       NETWORK_NAME: string | undefined;
       LOGS_CHANNEL_ID: string | undefined;
+      API_AUTH_KEY: string | undefined;
+      PORT: string | undefined;
     }
   }
 }
