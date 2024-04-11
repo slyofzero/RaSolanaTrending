@@ -35,10 +35,14 @@ export async function sendTransaction(
   amount: number,
   to?: string
 ) {
+  let attempts = 0;
+
   try {
     if (!to) {
       return false;
     }
+
+    attempts += 1;
 
     const { lamportsPerSignature } = (
       await solanaConnection.getRecentBlockhash("confirmed")
@@ -66,7 +70,9 @@ export async function sendTransaction(
     log(`No transaction for ${amount} to ${to}`);
     errorHandler(error);
 
-    sendTransaction(secretKey, amount, to);
+    if (attempts < 1) {
+      sendTransaction(secretKey, amount, to);
+    }
   }
 }
 

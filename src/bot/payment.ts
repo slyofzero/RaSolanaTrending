@@ -236,7 +236,7 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
       });
     }
 
-    const { id: accountID, secretKey: encryptedSecretKey } = storedAccount;
+    const { secretKey: encryptedSecretKey } = storedAccount;
     const secretKey = decrypt(encryptedSecretKey);
     const account = web3.Keypair.fromSecretKey(
       new Uint8Array(JSON.parse(secretKey))
@@ -304,15 +304,15 @@ Address Payment Received at - ${sentTo}`;
           .catch((e) => errorHandler(e));
 
         // Splitting payment
-        splitPayment(secretKey, balance, referrer)
-          .then(() => {
-            updateDocumentById({
-              updates: { locked: false },
-              collectionName: "accounts",
-              id: accountID || "",
-            });
-          })
-          .catch((e) => errorHandler(e));
+        splitPayment(secretKey, balance, referrer);
+        // .then(() => {
+        //   updateDocumentById({
+        //     updates: { locked: false },
+        //     collectionName: "accounts",
+        //     id: accountID || "",
+        //   });
+        // })
+        // .catch((e) => errorHandler(e));
 
         return true;
       } catch (error) {
