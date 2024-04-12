@@ -16,6 +16,8 @@ export function errorHandler(e: unknown) {
   const error = e as Error;
   const errorText = `Error: ${error.message}`;
   log(`Error: ${error.message}`);
+  // eslint-disable-next-line
+  console.trace();
 
   teleBot.api.sendMessage(LOGS_CHANNEL_ID || "", errorText).catch((e) => {
     const error = e as Error;

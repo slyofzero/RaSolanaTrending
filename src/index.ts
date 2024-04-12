@@ -15,6 +15,7 @@ import { syncAdvertisements } from "./vars/advertisements";
 import { cleanUpExpired } from "./bot/cleanUp";
 import { rpcConfig } from "./rpc";
 import express, { Request, Response } from "express";
+import { syncAdmins } from "./vars/admins";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -35,7 +36,7 @@ log("Express server ready");
   initiateBotCommands();
   initiateCallbackQueries();
 
-  await Promise.all([syncToTrend(), syncAdvertisements()]);
+  await Promise.all([syncToTrend(), syncAdvertisements(), syncAdmins()]);
   const ws = new WebSocket(DEX_URL, { headers: wssHeaders });
 
   function connectWebSocket() {

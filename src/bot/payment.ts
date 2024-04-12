@@ -30,13 +30,18 @@ import { customAlphabet } from "nanoid";
 import { teleBot } from "..";
 import web3, { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { solanaConnection } from "@/rpc";
+import { admins } from "@/vars/admins";
 
 const alphabet =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 const length = 10; // You can change the length as needed
 const nanoid = customAlphabet(alphabet, length);
 
-export async function getUnlockedAccount() {
+export async function getUnlockedAccount(ctx: CallbackQueryContext<Context>) {
+  const username = ctx.from.username;
+  const isAdminPurchase = admins.find(
+    ({ username: storedUsername }) => storedUsername === username
+  );
   let publicKey: string = "";
 
   const notLockedAccount = (
@@ -46,12 +51,13 @@ export async function getUnlockedAccount() {
     })
   ).at(0);
 
+  // Only lock if the purchase isn't an admin purchase
   if (notLockedAccount) {
     publicKey = notLockedAccount.publicKey;
     updateDocumentById({
       id: notLockedAccount.id || "",
       collectionName: "accounts",
-      updates: { locked: true, lockedAt: Timestamp.now() },
+      updates: { locked: !isAdminPurchase, lockedAt: Timestamp.now() },
     });
   } else {
     const newAccount = generateAccount();
@@ -60,7 +66,7 @@ export async function getUnlockedAccount() {
     const newAccountData: StoredAccount = {
       publicKey,
       secretKey: encrypt(newAccount.secretKey),
-      locked: true,
+      locked: !isAdminPurchase,
       lockedAt: Timestamp.now(),
     };
 
@@ -76,6 +82,10 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
   if (!chatId || !username)
     return ctx.reply("Please restart the bot interaction again");
 
+  const isAdminPurchase = admins.find(
+    ({ username: storedUsername }) => storedUsername === username
+  );
+
   const isTrendingPayment = Boolean(trendingState[chatId]);
   const commandToRedo = isTrendingPayment ? `/trend` : `/advertise`;
   const callbackReplace = isTrendingPayment ? `trendSlot` : `adSlot`;
@@ -85,7 +95,7 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
     const slot = Number(
       ctx.callbackQuery.data.replace(`${callbackReplace}-`, "")
     );
-    const account = await getUnlockedAccount();
+    const account = await getUnlockedAccount(ctx);
     const hash = nanoid(10);
 
     const { duration } = trendingState[chatId] || advertisementState[chatId];
@@ -118,7 +128,12 @@ Address - \`${account}\``;
       `${paymentCategory}-${hash}`
     );
 
-    ctx.reply(text, { parse_mode: "MarkdownV2", reply_markup: keyboard });
+    if (!isAdminPurchase)
+      ctx.reply(text, { parse_mode: "MarkdownV2", reply_markup: keyboard });
+    else {
+      text = `${slotText} slot ${slot} for ${duration} hours added`;
+      ctx.reply(text);
+    }
 
     const [referralData] = await getDocument<StoredReferral>({
       collectionName: "referral",
@@ -133,13 +148,15 @@ Address - \`${account}\``;
       slot: slot,
       duration: duration,
       hash,
-      status: "PENDING",
+      status: isAdminPurchase ? "MANUAL" : "PENDING",
       initiatedBy: chatId,
       username,
     } as StoredToTrend | StoredAdvertisement;
 
+    console.log(referralData.referrer, dataToAdd);
     if (referralData.referrer) {
       dataToAdd.referrer = referralData.referrer;
+      console.log(dataToAdd);
     }
 
     if (isTrendingPayment) {
@@ -161,6 +178,12 @@ Address - \`${account}\``;
       collectionName,
       data: dataToAdd,
       id: hash,
+    }).then(() => {
+      if (isAdminPurchase) {
+        collectionName === "advertisements"
+          ? syncAdvertisements()
+          : syncToTrend();
+      }
     });
 
     delete trendingState[chatId];
