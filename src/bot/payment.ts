@@ -135,11 +135,6 @@ Address - \`${account}\``;
       ctx.reply(text);
     }
 
-    const [referralData] = await getDocument<StoredReferral>({
-      collectionName: "referral",
-      queries: [["userId", "==", chatId]],
-    });
-
     const collectionName = isTrendingPayment ? "to_trend" : "advertisements";
     let dataToAdd: StoredToTrend | StoredAdvertisement = {
       paidAt: Timestamp.now(),
@@ -152,12 +147,6 @@ Address - \`${account}\``;
       initiatedBy: chatId,
       username,
     } as StoredToTrend | StoredAdvertisement;
-
-    console.log(referralData.referrer, dataToAdd);
-    if (referralData.referrer) {
-      dataToAdd.referrer = referralData.referrer;
-      console.log(dataToAdd);
-    }
 
     if (isTrendingPayment) {
       const { token } = trendingState[chatId];
@@ -202,6 +191,7 @@ Address - \`${account}\``;
 
 export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
   try {
+    const chatId = ctx.chat?.id;
     const from = ctx.from;
     const callbackData = ctx.callbackQuery.data;
     const [category, hash] = callbackData.split("-");
@@ -228,8 +218,7 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
       );
     }
 
-    const { paidAt, sentTo, amount, duration, slot, referrer } =
-      trendingPayment;
+    const { paidAt, sentTo, amount, duration, slot } = trendingPayment;
     const timeSpent = getSecondsElapsed(paidAt.seconds);
 
     if (timeSpent > transactionValidTime) {
@@ -279,6 +268,12 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
           await sleep(30000);
           continue attemptsCheck;
         }
+
+        const [referralData] = await getDocument<StoredReferral>({
+          collectionName: "referral",
+          queries: [["userId", "==", chatId]],
+        });
+        const { referrer } = referralData || {};
 
         const amountSol = amount / LAMPORTS_PER_SOL;
 

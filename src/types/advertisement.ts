@@ -14,5 +14,4 @@ export interface StoredAdvertisement {
   expiresAt?: Timestamp;
   initiatedBy: number;
   username: string;
-  referrer?: number;
 }

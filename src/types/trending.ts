@@ -15,5 +15,4 @@ export interface StoredToTrend {
   expiresAt?: Timestamp;
   initiatedBy: number;
   username: string;
-  referrer?: number;
 }
