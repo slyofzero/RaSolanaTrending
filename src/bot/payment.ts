@@ -16,7 +16,7 @@ import {
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import { LOGS_CHANNEL_ID } from "@/utils/env";
+import { LOGS_CHANNEL_ID, PAYMENT_LOGS_CHANNEL_ID } from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -277,12 +277,15 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
 
         const amountSol = amount / LAMPORTS_PER_SOL;
 
-        const logText = `Transaction ${hash} for trend verified with payment of ${amountSol} SOL`;
+        const logText = `Transaction ${hash} for ${collectionName} verified with payment of ${amount} ETH.\nSlot ${slot}, duration ${duration}`;
         log(logText);
         const currentTimestamp = Timestamp.now();
 
         teleBot.api
-          .sendMessage(LOGS_CHANNEL_ID || "", cleanUpBotMessage(logText))
+          .sendMessage(
+            PAYMENT_LOGS_CHANNEL_ID || "",
+            cleanUpBotMessage(logText)
+          )
           .catch((e) => errorHandler(e));
 
         updateDocumentById({
