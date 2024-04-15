@@ -96,13 +96,13 @@ export async function splitPayment(
     const { dev, main, revenue } = splitPaymentsWith;
 
     // ------------------------------ Calculating shares ------------------------------
-    const devShare = dev.share * totalPaymentAmount;
+    const devShare = Math.ceil(dev.share * totalPaymentAmount);
     const shareLeft = totalPaymentAmount - devShare;
 
     const referralShare = referralAddress
-      ? shareLeft * referralCommisionFee
+      ? Math.floor(shareLeft * referralCommisionFee)
       : 0;
-    const revenueShare = shareLeft * revenue.share;
+    const revenueShare = Math.floor(shareLeft * revenue.share);
     const mainShare = shareLeft - (referralShare + revenueShare);
 
     // ------------------------------ Txns ------------------------------
