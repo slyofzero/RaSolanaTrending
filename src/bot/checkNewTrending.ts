@@ -12,10 +12,9 @@ import {
 import moment from "moment";
 import { teleBot } from "..";
 import { errorHandler, log } from "@/utils/handlers";
-import { CHANNEL_ID, NETWORK_NAME } from "@/utils/env";
+import { CHANNEL_ID, NETWORK_NAME, TOKEN_DATA_URL } from "@/utils/env";
 import { PairData, PairsData } from "@/types";
 import { apiFetcher } from "@/utils/api";
-import { DEXSCREEN_URL } from "@/utils/constants";
 
 async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   if (!CHANNEL_ID) {
@@ -93,7 +92,7 @@ export async function sendToTrendTokensMsg() {
     const { token, slot } = toTrendData;
     try {
       const tokenData = await apiFetcher<PairsData>(
-        `${DEXSCREEN_URL}/${token}`
+        `${TOKEN_DATA_URL}/${token}`
       );
       const firstPair = tokenData.data.pairs.at(0);
 
