@@ -5,6 +5,7 @@ import { trend } from "./trend";
 import { executeStep } from "../executeStep";
 import { advertise } from "./advertise";
 import { referralLink } from "./referralLink";
+import { referral_data } from "./referralData";
 
 export function initiateBotCommands() {
   teleBot.api
@@ -19,6 +20,7 @@ export function initiateBotCommands() {
         command: "referral_link",
         description: "To get or edit your referral link",
       },
+      { command: "referral_data", description: "Get your referral data" },
     ])
     .catch((e) => errorHandler(e));
 
@@ -26,6 +28,7 @@ export function initiateBotCommands() {
   teleBot.command("trend", (ctx) => trend(ctx));
   teleBot.command("advertise", (ctx) => advertise(ctx));
   teleBot.command("referral_link", (ctx) => referralLink(ctx));
+  teleBot.command("referral_data", (ctx) => referral_data(ctx));
 
   // @ts-expect-error Type not found
   teleBot.on(["message"], (ctx) => executeStep(ctx));

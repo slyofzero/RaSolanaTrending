@@ -4,4 +4,5 @@ export interface StoredReferral {
   walletAddress?: string;
   referrer?: number;
   referralText?: string;
+  feesCollected?: number;
 }

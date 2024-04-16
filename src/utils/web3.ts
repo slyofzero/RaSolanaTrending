@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { errorHandler, log } from "./handlers";
 import { referralCommisionFee, splitPaymentsWith } from "./constants";
-import { getDocument } from "@/firebase";
+import { getDocument, updateDocumentById } from "@/firebase";
 import { StoredReferral } from "@/types";
 import nacl from "tweetnacl";
 import { solanaConnection } from "@/rpc";
@@ -82,26 +82,36 @@ export async function splitPayment(
   referrer?: number
 ) {
   try {
-    let referralAddress = "";
-    if (referrer) {
-      const [referralData] = await getDocument<StoredReferral>({
-        collectionName: "referral",
-        queries: [["referrer", "==", referrer]],
-      });
-
-      if (referralData.walletAddress)
-        referralAddress = referralData.walletAddress;
-    }
-
     const { dev, main, revenue } = splitPaymentsWith;
 
     // ------------------------------ Calculating shares ------------------------------
     const devShare = Math.ceil(dev.share * totalPaymentAmount);
     const shareLeft = totalPaymentAmount - devShare;
 
-    const referralShare = referralAddress
-      ? Math.floor(shareLeft * referralCommisionFee)
-      : 0;
+    let referralAddress = "";
+    let referralShare = 0;
+
+    if (referrer) {
+      const [referralData] = await getDocument<StoredReferral>({
+        collectionName: "referral",
+        queries: [["referrer", "==", referrer]],
+      });
+
+      if (referralData.walletAddress) {
+        referralAddress = referralData.walletAddress;
+        referralShare = Math.floor(shareLeft * referralCommisionFee);
+
+        const newFeesCollected =
+          (referralData.feesCollected || 0) + referralShare;
+
+        updateDocumentById<StoredReferral>({
+          id: referralData.id || "",
+          collectionName: "referral",
+          updates: { feesCollected: newFeesCollected },
+        });
+      }
+    }
+
     const revenueShare = Math.floor(shareLeft * revenue.share);
     const mainShare = shareLeft - (referralShare + revenueShare);
 

@@ -163,6 +163,15 @@ Address - \`${account}\``;
       };
     }
 
+    // Expiry for manual trending
+    if (isAdminPurchase) {
+      const currentTimestamp = Timestamp.now();
+      dataToAdd.expiresAt = new Timestamp(
+        currentTimestamp.seconds + duration * 60 * 60,
+        currentTimestamp.nanoseconds
+      );
+    }
+
     addDocument({
       collectionName,
       data: dataToAdd,
