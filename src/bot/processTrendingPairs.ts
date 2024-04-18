@@ -14,11 +14,11 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
   const newTopTrendingTokens: TrendingTokens = [];
 
   let mcLimit = MCLimit;
-  while (newTopTrendingTokens.length < 10 && mcLimit <= MCLimit) {
+  while (newTopTrendingTokens.length < 15 && mcLimit <= MCLimit) {
     for (const pair of pairs) {
       try {
         // Only need 15 tokens at the top
-        if (newTopTrendingTokens.length >= 10) break;
+        if (newTopTrendingTokens.length >= 15) break;
 
         const { baseToken, marketCap } = pair;
 
