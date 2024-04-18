@@ -9,7 +9,6 @@ import { processTrendingPairs } from "./bot/processTrendingPairs";
 import { getNowTimestamp, getSecondsElapsed } from "./utils/time";
 import { syncToTrend, trendingTokens } from "./vars/trending";
 import { updateTrendingMessage } from "./bot/updateTrendingMessage";
-import { trackTokenMC } from "./bot/trackTokenMC";
 import { checkNewTrending, sendToTrendTokensMsg } from "./bot/checkNewTrending";
 import { syncAdvertisements } from "./vars/advertisements";
 import { cleanUpExpired } from "./bot/cleanUp";

@@ -18,7 +18,7 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
     for (const pair of pairs) {
       try {
         // Only need 15 tokens at the top
-        if (newTopTrendingTokens.length >= 15) break;
+        if (newTopTrendingTokens.length >= 10) break;
 
         const { baseToken, marketCap } = pair;
 
