@@ -66,7 +66,7 @@ log("Express server ready");
 
         updateTrendingMessage();
         checkNewTrending();
-        trackTokenMC();
+        // trackTokenMC();
 
         cleanUpExpired();
       }
