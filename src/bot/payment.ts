@@ -16,7 +16,11 @@ import {
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import { LOGS_CHANNEL_ID, PAYMENT_LOGS_CHANNEL_ID } from "@/utils/env";
+import {
+  BOT_USERNAME,
+  LOGS_CHANNEL_ID,
+  PAYMENT_LOGS_CHANNEL_ID,
+} from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -286,7 +290,7 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
 
         const amountSol = (amount / LAMPORTS_PER_SOL).toFixed(3);
 
-        const logText = `Transaction ${hash} for ${collectionName} verified with payment of ${amountSol} SOL.\nSlot ${slot}, duration ${duration}`;
+        const logText = `${BOT_USERNAME} transaction ${hash} for ${collectionName} verified with payment of ${amountSol} SOL.\nSlot ${slot}, duration ${duration} hours`;
         log(logText);
         const currentTimestamp = Timestamp.now();
 
