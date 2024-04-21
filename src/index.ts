@@ -65,8 +65,8 @@ log("Express server ready");
         await processTrendingPairs(pairs);
 
         updateTrendingMessage();
-        checkNewTrending();
-        trackTokenMC();
+        // checkNewTrending();
+        // trackTokenMC();
 
         cleanUpExpired();
       }
@@ -76,21 +76,21 @@ log("Express server ready");
   connectWebSocket();
   setInterval(sendToTrendTokensMsg, 30 * 60 * 1e3);
 
-  app.use(express.json());
+  // app.use(express.json());
 
-  app.get("/trending", (req: Request, res: Response) => {
-    if (req.headers.authorization !== API_AUTH_KEY) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
-    }
+  // app.get("/trending", (req: Request, res: Response) => {
+  //   if (req.headers.authorization !== API_AUTH_KEY) {
+  //     res.status(401).json({ message: "Unauthorized" });
+  //     return;
+  //   }
 
-    // eslint-disable-next-line
-    const trendingTokensList = trendingTokens.map(([token]) => token);
+  //   // eslint-disable-next-line
+  //   const trendingTokensList = trendingTokens.map(([token]) => token);
 
-    return res.status(200).json({ trendingTokens: trendingTokensList });
-  });
+  //   return res.status(200).json({ trendingTokens: trendingTokensList });
+  // });
 
-  app.listen(PORT, () => {
-    log(`Server is running on port ${PORT}`);
-  });
+  // app.listen(PORT, () => {
+  //   log(`Server is running on port ${PORT}`);
+  // });
 })();

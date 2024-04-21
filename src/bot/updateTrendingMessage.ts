@@ -1,10 +1,11 @@
-import { BOT_URL, BOT_USERNAME, CHANNEL_ID, PINNED_MSG_ID } from "@/utils/env";
+import { BOT_USERNAME, CHANNEL_ID, PINNED_MSG_ID } from "@/utils/env";
 import { errorHandler, log } from "@/utils/handlers";
 import { trendingTokens } from "@/vars/trending";
 import { DEXSCREEN_URL } from "@/utils/constants";
-import { lastEditted, setLastEditted } from "@/vars/message";
+import { setLastEditted } from "@/vars/message";
 import { teleBot } from "..";
 import {
+  cleanUpBotMessage,
   generateAdvertisementKeyboard,
   hardCleanUpBotMessage,
 } from "@/utils/bot";
@@ -16,35 +17,54 @@ export async function updateTrendingMessage() {
   }
 
   let trendingTokensMessage = `🟢 @${BOT_USERNAME} \\(LIVE\\)\n\n`;
-  const icons = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
-  const buyText = `[*Buy a spot ⚡*](${BOT_URL}?start=trend)\n`;
+  const icons = [
+    "🥇",
+    "🥈",
+    "🥉",
+    "4️⃣",
+    "5️⃣",
+    "6️⃣",
+    "7️⃣",
+    "8️⃣",
+    "9️⃣",
+    "🔟",
+    "1️⃣1️⃣",
+    "1️⃣2️⃣",
+    "1️⃣3️⃣",
+    "1️⃣4️⃣",
+    "1️⃣5️⃣",
+    "1️⃣6️⃣",
+    "1️⃣7️⃣",
+    "1️⃣8️⃣",
+    "1️⃣9️⃣",
+    "2️⃣0️⃣",
+  ];
 
   try {
     // ------------------------------ Trending Message ------------------------------
     for (const [index, [token, tokenData]] of trendingTokens.entries()) {
+      if (index === 3 || index === 10) {
+        trendingTokensMessage += cleanUpBotMessage(
+          "--------------------------\n"
+        );
+      }
+
       const { baseToken, priceChange } = tokenData;
-      const name = baseToken.name;
+      const { symbol } = baseToken;
       const priceChangeh24 = priceChange.h24;
-      const icon = icons[index] || "🔥";
+      const icon = icons[index];
 
-      const url = `${DEXSCREEN_URL}/solana/${token}`;
-      const scanUrl = `https://t.me/ttfbotbot?start=${token}`;
-      const buyUrl = `https://t.me/magnum_trade_bot?start=PHryLEnW_snipe_${token}`;
-
-      const cleanedTokenName = hardCleanUpBotMessage(name);
+      const url = `${DEXSCREEN_URL}/ton/${token}`;
+      const cleanedTokenSymbol = hardCleanUpBotMessage(symbol);
       const formattedPriceChange = formatM2Number(priceChangeh24);
 
-      let newLine = `${icon} [${cleanedTokenName}](${url}) \\| ${formattedPriceChange}% \\| [Scan](${scanUrl}) \\| [Buy](${buyUrl})\n`;
+      let newLine = `${icon} \\- [*$${cleanedTokenSymbol}*](${url}) \\| [*${formattedPriceChange}*](${url})%\n`;
       newLine = newLine.trimStart();
       trendingTokensMessage += newLine;
-
-      if (index === 2) {
-        trendingTokensMessage += buyText;
-      }
     }
 
     setLastEditted(new Date().toLocaleTimeString());
-    trendingTokensMessage += `\n_Automatically updates every minute_\n_Last updated at ${lastEditted} \\(GMT\\)_`;
+    trendingTokensMessage += `\n_Trending data is automatically updated by\n@${BOT_USERNAME} every 10 seconds_`;
 
     // ------------------------------ Advertisements ------------------------------
     const keyboard = generateAdvertisementKeyboard();

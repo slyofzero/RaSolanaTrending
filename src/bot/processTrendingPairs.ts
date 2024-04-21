@@ -13,39 +13,31 @@ import {
 export async function processTrendingPairs(pairs: WSSPairData[]) {
   const newTopTrendingTokens: TrendingTokens = [];
 
-  let mcLimit = MCLimit;
-  while (newTopTrendingTokens.length < 15 && mcLimit <= MCLimit) {
-    for (const pair of pairs) {
-      try {
-        // Only need 15 tokens at the top
-        if (newTopTrendingTokens.length >= 15) break;
+  for (const pair of pairs.slice(0, 20)) {
+    try {
+      const { baseToken } = pair;
 
-        const { baseToken, marketCap } = pair;
+      const { address } = baseToken;
+      const pairData = await apiFetcher<PairsData>(
+        `${TOKEN_DATA_URL}/${address}`
+      );
 
-        if (marketCap > mcLimit) continue;
+      const tokenAlreadyInTop15 = newTopTrendingTokens.some(
+        ([token]) => token === address
+      );
 
-        const { address } = baseToken;
-        const pairData = await apiFetcher<PairsData>(
-          `${TOKEN_DATA_URL}/${address}`
-        );
+      const firstPair = pairData.data.pairs.at(0);
+      if (!firstPair || tokenAlreadyInTop15) continue;
 
-        const tokenAlreadyInTop15 = newTopTrendingTokens.some(
-          ([token]) => token === address
-        );
-
-        const firstPair = pairData.data.pairs.at(0);
-        if (!firstPair || tokenAlreadyInTop15) continue;
-
-        newTopTrendingTokens.push([address, firstPair]);
-      } catch (error) {
-        const err = error as Error;
-        log(err.message);
-        continue;
-      }
+      newTopTrendingTokens.push([address, firstPair]);
+    } catch (error) {
+      const err = error as Error;
+      log(err.message);
+      continue;
     }
-
-    mcLimit *= 2;
   }
+
+  console.log(newTopTrendingTokens.length);
 
   for (const { slot, token } of toTrendTokens) {
     try {
