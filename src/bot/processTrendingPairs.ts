@@ -1,7 +1,6 @@
 import { PairData, PairsData, WSSPairData } from "@/types";
 import { TrendingTokens } from "@/types/trending";
 import { apiFetcher } from "@/utils/api";
-import { MCLimit } from "@/utils/constants";
 import { TOKEN_DATA_URL } from "@/utils/env";
 import { log } from "@/utils/handlers";
 import {
@@ -13,7 +12,9 @@ import {
 export async function processTrendingPairs(pairs: WSSPairData[]) {
   const newTopTrendingTokens: TrendingTokens = [];
 
-  for (const pair of pairs.slice(0, 20)) {
+  for (const pair of pairs.slice(0, 30)) {
+    if (newTopTrendingTokens.length >= 20) break;
+
     try {
       const { baseToken } = pair;
 
@@ -36,8 +37,6 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
       continue;
     }
   }
-
-  console.log(newTopTrendingTokens.length);
 
   for (const { slot, token } of toTrendTokens) {
     try {

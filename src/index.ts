@@ -1,3 +1,4 @@
+import { Address } from "@ton/ton";
 import { Bot } from "grammy";
 import { initiateBotCommands, initiateCallbackQueries } from "./bot";
 import { log } from "./utils/handlers";
@@ -9,13 +10,12 @@ import { processTrendingPairs } from "./bot/processTrendingPairs";
 import { getNowTimestamp, getSecondsElapsed } from "./utils/time";
 import { syncToTrend, trendingTokens } from "./vars/trending";
 import { updateTrendingMessage } from "./bot/updateTrendingMessage";
-import { checkNewTrending, sendToTrendTokensMsg } from "./bot/checkNewTrending";
+import { sendToTrendTokensMsg } from "./bot/checkNewTrending";
 import { syncAdvertisements } from "./vars/advertisements";
 import { cleanUpExpired } from "./bot/cleanUp";
 import { rpcConfig } from "./rpc";
 import express, { Request, Response } from "express";
 import { syncAdmins } from "./vars/admins";
-import { trackTokenMC } from "./bot/trackTokenMC";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -65,8 +65,6 @@ log("Express server ready");
         await processTrendingPairs(pairs);
 
         updateTrendingMessage();
-        // checkNewTrending();
-        // trackTokenMC();
 
         cleanUpExpired();
       }
@@ -76,21 +74,27 @@ log("Express server ready");
   connectWebSocket();
   setInterval(sendToTrendTokensMsg, 30 * 60 * 1e3);
 
-  // app.use(express.json());
+  app.use(express.json());
 
-  // app.get("/trending", (req: Request, res: Response) => {
-  //   if (req.headers.authorization !== API_AUTH_KEY) {
-  //     res.status(401).json({ message: "Unauthorized" });
-  //     return;
-  //   }
+  app.get("/ping", (req: Request, res: Response) => {
+    return res.json({ message: "Server is up" });
+  });
 
-  //   // eslint-disable-next-line
-  //   const trendingTokensList = trendingTokens.map(([token]) => token);
+  app.get("/trending", (req: Request, res: Response) => {
+    if (req.headers.authorization !== API_AUTH_KEY) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
-  //   return res.status(200).json({ trendingTokens: trendingTokensList });
-  // });
+    // eslint-disable-next-line
+    const trendingTokensList = trendingTokens.map(([token]) =>
+      Address.parse(token).toRawString()
+    );
 
-  // app.listen(PORT, () => {
-  //   log(`Server is running on port ${PORT}`);
-  // });
+    return res.status(200).json({ trendingTokens: trendingTokensList });
+  });
+
+  app.listen(PORT, () => {
+    log(`Server is running on port ${PORT}`);
+  });
 })();
