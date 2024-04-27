@@ -4,13 +4,10 @@ import { advertise } from "./advertise";
 import { getDocument } from "@/firebase";
 import { StoredReferral } from "@/types";
 import { referralLink } from "./referralLink";
+import { BOT_USERNAME } from "@/utils/env";
 
 export async function startBot(ctx: CommandContext<Context>) {
-  const text = `Welcome to TruTrend\\!
-
-Use following links to view TruTrend services
-[*Solana Trending*](https://t.me/TruTrendSolana)
-[*Base Chain Trending*](https://t.me/TruTrendBase)
+  const text = `Welcome to ${BOT_USERNAME}\\!
 
 /referral\\_link \\- To get your referral Link
 /advertise \\- To buy an ad slot on our bot
