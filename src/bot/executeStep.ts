@@ -7,11 +7,6 @@ import {
   selectAdDuration,
   selectAdSlot,
 } from "./commands/advertise";
-import {
-  referralLink,
-  setCustomLink,
-  setReferralText,
-} from "./commands/referralLink";
 import { log } from "@/utils/handlers";
 
 const steps: { [key: string]: any } = {
@@ -25,10 +20,6 @@ const steps: { [key: string]: any } = {
   adDuration: selectAdSlot,
   adSlot: preparePayment,
   adPayment: confirmPayment,
-
-  referralAddress: referralLink,
-  setCustomLink: setCustomLink,
-  setReferralText: setReferralText,
 };
 
 export async function executeStep(

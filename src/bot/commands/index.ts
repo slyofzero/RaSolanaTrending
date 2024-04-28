@@ -4,8 +4,6 @@ import { errorHandler, log } from "@/utils/handlers";
 import { trend } from "./trend";
 import { executeStep } from "../executeStep";
 import { advertise } from "./advertise";
-import { referralLink } from "./referralLink";
-import { referral_data } from "./referralData";
 
 export function initiateBotCommands() {
   teleBot.api
@@ -27,8 +25,6 @@ export function initiateBotCommands() {
   teleBot.command("start", (ctx) => startBot(ctx));
   teleBot.command("trend", (ctx) => trend(ctx));
   teleBot.command("advertise", (ctx) => advertise(ctx));
-  teleBot.command("referral_link", (ctx) => referralLink(ctx));
-  teleBot.command("referral_data", (ctx) => referral_data(ctx));
 
   // @ts-expect-error Type not found
   teleBot.on(["message"], (ctx) => executeStep(ctx));
