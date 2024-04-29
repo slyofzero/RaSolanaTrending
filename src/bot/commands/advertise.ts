@@ -8,9 +8,22 @@ import {
   InlineKeyboard,
 } from "grammy";
 import { preparePayment } from "../payment";
+import { advertisements } from "@/vars/advertisements";
+import moment from "moment";
 
 export async function advertise(ctx: CommandContext<Context>) {
   const { id: chatId } = ctx.chat;
+
+  const isTaken = advertisements.find(({ status }) => status === "PAID");
+
+  if (isTaken) {
+    const { expiresAt } = isTaken;
+    const fromNow = moment((expiresAt?.seconds || 0) * 1e3).fromNow();
+    return ctx.reply(
+      `The ad slot has already been taken for now. It will be available again ${fromNow}.`
+    );
+  }
+
   userState[chatId] = "advertiseText";
   const text = `To advertise, please provide the advertisement's text in the next message`;
   ctx.reply(text);
