@@ -10,8 +10,8 @@ import { userState } from "@/vars/state";
 import { confirmPayment, preparePayment } from "./payment";
 import {
   advertiseLink,
+  prepareAdvertisementState,
   selectAdDuration,
-  selectAdSlot,
 } from "./commands/advertise";
 import { log } from "@/utils/handlers";
 
@@ -25,7 +25,7 @@ const steps: { [key: string]: any } = {
 
   advertiseText: advertiseLink,
   advertiseLink: selectAdDuration,
-  adDuration: selectAdSlot,
+  adDuration: prepareAdvertisementState,
   adSlot: preparePayment,
   adPayment: confirmPayment,
 };

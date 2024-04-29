@@ -95,13 +95,11 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
 
   const isTrendingPayment = Boolean(trendingState[chatId]);
   const commandToRedo = isTrendingPayment ? `/trend` : `/advertise`;
-  const callbackReplace = isTrendingPayment ? `trendDuration` : `adSlot`;
 
   try {
     ctx.deleteMessage();
     const slot =
-      trendingState[chatId].slot ||
-      Number(ctx.callbackQuery.data.replace(`${callbackReplace}-`, ""));
+      trendingState[chatId]?.slot || advertisementState[chatId]?.slot;
     const account = await getUnlockedAccount(ctx);
     const hash = nanoid(10);
 
@@ -367,9 +365,13 @@ Ends in: ${duration} Hours
         const syncFunc = isTrendingPayment ? syncToTrend : syncAdvertisements;
 
         if (isTrendingPayment) {
-          apiPoster(`${BUY_BOT_API}/syncTrending`);
+          apiPoster(`${BUY_BOT_API}/syncTrending`).catch((e) =>
+            errorHandler(e)
+          );
         } else {
-          apiPoster(`${BUY_BOT_API}/syncAdvertisements`);
+          apiPoster(`${BUY_BOT_API}/syncAdvertisements`).catch((e) =>
+            errorHandler(e)
+          );
         }
 
         syncFunc()

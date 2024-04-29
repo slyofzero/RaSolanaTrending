@@ -23,9 +23,9 @@ export const trendPrices: { [K in 1 | 2 | 3]: { [key: number]: number } } = {
 };
 
 export const adPrices: { [key: number]: number } = {
-  4: 300,
-  12: 750,
-  24: 1250,
+  4: 8,
+  12: 20,
+  24: 35,
 };
 
 export const transactionValidTime = 25 * 60;

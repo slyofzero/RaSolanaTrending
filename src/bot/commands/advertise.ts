@@ -1,6 +1,5 @@
 import { adPrices } from "@/utils/constants";
 import { isValidUrl } from "@/utils/general";
-import { advertisements } from "@/vars/advertisements";
 import { advertisementState, userState } from "@/vars/state";
 import {
   CallbackQueryContext,
@@ -8,6 +7,7 @@ import {
   Context,
   InlineKeyboard,
 } from "grammy";
+import { preparePayment } from "../payment";
 
 export async function advertise(ctx: CommandContext<Context>) {
   const { id: chatId } = ctx.chat;
@@ -43,41 +43,24 @@ export async function selectAdDuration(ctx: CommandContext<Context>) {
   let keyboard = new InlineKeyboard();
 
   for (const duration in adPrices) {
-    const slotText = `${duration} hours`;
+    const price = adPrices[duration];
+    const slotText = `${duration} hours : ${price} TON`;
     keyboard = keyboard.text(slotText, `adDuration-${duration}`).row();
   }
 
   ctx.reply(text, { reply_markup: keyboard });
 }
 
-export async function selectAdSlot(ctx: CallbackQueryContext<Context>) {
-  const chatId = ctx.chat?.id;
-  if (!chatId) return ctx.reply("Please do /trend again");
+export function prepareAdvertisementState(ctx: CallbackQueryContext<Context>) {
+  const chatId = ctx.chat?.id || "";
+  const duration = Number(
+    ctx.callbackQuery.data.replace("adDuration-", "").split("-")
+  );
 
-  ctx.deleteMessage();
-  const duration = Number(ctx.callbackQuery.data.replace("adDuration-", ""));
-  advertisementState[chatId] = { ...advertisementState[chatId], duration };
-
-  const text =
-    "Select the advertisement slot you wish for your ad to appear on";
-  let keyboard = new InlineKeyboard();
-
-  for (const index of Array.from(Array(2).keys())) {
-    const slot = index + 1;
-    const adSlot = advertisements.find(
-      ({ slot: storedSlot }) => storedSlot === slot
-    );
-
-    if (adSlot) {
-      keyboard = keyboard
-        .text(`Slot ${slot}: ❌ Taken`, "invalid-ad-slot")
-        .row();
-    } else {
-      keyboard = keyboard
-        .text(`Slot ${slot}: ✅ Available`, `adSlot-${slot}`)
-        .row();
-    }
-  }
-
-  ctx.reply(text, { reply_markup: keyboard });
+  advertisementState[chatId] = {
+    ...advertisementState[chatId],
+    slot: 1,
+    duration,
+  };
+  preparePayment(ctx);
 }
