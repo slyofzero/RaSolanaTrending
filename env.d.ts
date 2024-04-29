@@ -16,6 +16,7 @@ declare global {
       LOGS_CHANNEL_ID: string | undefined;
       PAYMENT_LOGS_CHANNEL_ID: string | undefined;
       API_AUTH_KEY: string | undefined;
+      MAIN_ADDRESS: string | undefined;
       PORT: string | undefined;
     }
   }

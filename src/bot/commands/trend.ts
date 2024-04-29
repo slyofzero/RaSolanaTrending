@@ -12,6 +12,8 @@ import {
 import { preparePayment } from "../payment";
 import { isValidUrl } from "@/utils/general";
 import { TerminalData } from "@/types/terminal";
+import { PairsData } from "@/types";
+import { TOKEN_DATA_URL } from "@/utils/env";
 
 export async function trend(ctx: CommandContext<Context>) {
   const { id: chatId } = ctx.chat;
@@ -28,12 +30,17 @@ export async function addTrendingSocial(ctx: CommandContext<Context>) {
     return ctx.reply("Please enter a proper token address");
   }
 
-  const tokenData = (
-    await apiFetcher<TerminalData>(
-      `https://api.geckoterminal.com/api/v2/search/pools?query=${token}&network=ton&page=1`
-    )
-  ).data;
-  if (tokenData.data.length === 0) {
+  const terminalResponse = apiFetcher<TerminalData>(
+    `https://api.geckoterminal.com/api/v2/search/pools?query=${token}&network=ton&page=1`
+  );
+  const dexSResonse = apiFetcher<PairsData>(`${TOKEN_DATA_URL}/${token}`);
+
+  const [terminalData, dexSData] = await Promise.all([
+    terminalResponse,
+    dexSResonse,
+  ]);
+
+  if (terminalData.data.data.length === 0 && dexSData.data.pairs.length === 0) {
     return ctx.reply("The address you entered has no pairs on Ton");
   }
 

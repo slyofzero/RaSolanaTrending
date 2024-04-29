@@ -20,6 +20,7 @@ export const {
   API_AUTH_KEY,
   PORT,
   PAYMENT_LOGS_CHANNEL_ID,
+  MAIN_ADDRESS,
 } = process.env;
 
 export const BOT_URL = `https://t.me/${BOT_USERNAME}`;

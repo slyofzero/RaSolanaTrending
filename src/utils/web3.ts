@@ -1,8 +1,16 @@
 import { errorHandler, log } from "./handlers";
-import { avgGasFees, splitPaymentsWith, workchain } from "./constants";
+import { avgGasFees, workchain } from "./constants";
 import { mnemonicNew, mnemonicToPrivateKey } from "ton-crypto";
 import { tonClient } from "@/rpc";
-import { Address, WalletContractV4, internal, toNano } from "@ton/ton";
+import {
+  Address,
+  SendMode,
+  WalletContractV4,
+  internal,
+  toNano,
+} from "@ton/ton";
+import { MAIN_ADDRESS } from "./env";
+import { sleep } from "./time";
 
 export function isValidTonAddress(address: string) {
   try {
@@ -78,7 +86,8 @@ export async function sendTransaction(
   secretKey: string[],
   amount: number,
   to: string,
-  message?: string
+  message?: string,
+  sendMode?: SendMode
 ) {
   try {
     const keypair = await mnemonicToPrivateKey(secretKey);
@@ -88,26 +97,36 @@ export async function sendTransaction(
     });
     const contract = tonClient.open(wallet);
     const seqno = await contract.getSeqno();
-    const amountAfterFees = amount - avgGasFees;
     const toAddress = Address.parse(to).toString({ urlSafe: true });
 
-    await contract.sendTransfer({
+    if (!sendMode) amount = amount - avgGasFees;
+
+    const args: any = {
       seqno,
       secretKey: keypair.secretKey,
       messages: [
         internal({
-          to,
-          value: toNano(amountAfterFees.toFixed(2)),
+          to: toAddress,
+          value: toNano(amount.toFixed(2)),
           body: message,
           bounce: false,
         }),
       ],
-    });
+    };
 
-    log(`Sent ${amountAfterFees} to ${toAddress}, ${message}`);
+    if (sendMode) {
+      args.sendMode = sendMode;
+    }
+
+    await contract.sendTransfer(args);
+
+    log(`Sent ${amount} to ${toAddress}, ${message}`);
     return true;
   } catch (error) {
     errorHandler(error);
+    log("Retrying...");
+    await sleep(30000);
+    sendTransaction(secretKey, amount, to, message, sendMode);
   }
 }
 
@@ -115,22 +134,19 @@ export async function splitPayment(
   secretKey: string[],
   totalPaymentAmount: number
 ) {
+  if (!MAIN_ADDRESS) {
+    return log(`No main address`);
+  }
+
   try {
-    const { dev, main } = splitPaymentsWith;
-
-    // ------------------------------ Calculating shares ------------------------------
-    const devShare = Math.ceil(dev.share * totalPaymentAmount);
-    const mainShare = totalPaymentAmount - devShare;
-
-    // ------------------------------ Txns ------------------------------
-    const devTx = await sendTransaction(secretKey, devShare, dev.address);
-    if (devTx) log(`Dev share ${devShare} sent ${devTx}`);
-
-    // const revTx = await sendTransaction(secretKey, revenueShare, revenue.address); // prettier-ignore
-    // if (revTx) log(`Revenue share ${revenueShare} sent ${revTx}`);
-
-    const mainTx = await sendTransaction(secretKey, mainShare, main.address); // prettier-ignore
-    if (mainTx) log(`Main share ${mainShare} sent ${mainTx}`);
+    await sendTransaction(
+      secretKey,
+      totalPaymentAmount,
+      MAIN_ADDRESS,
+      "Main Share",
+      128
+    ); // prettier-ignore
+    log(`Main share ${totalPaymentAmount} sent`);
   } catch (error) {
     errorHandler(error);
   }

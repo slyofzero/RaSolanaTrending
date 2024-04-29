@@ -67,7 +67,10 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
         `${TOKEN_DATA_URL}/${token}`
       );
       const firstPair = pairData.data.pairs.at(0);
-      if (!firstPair) continue;
+      if (!firstPair) {
+        log(`Pair not found for ${token}`);
+        continue;
+      }
       const newTrendingPair: [string, TrendingData] = [
         token,
         { ...firstPair, socials },

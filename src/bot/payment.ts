@@ -4,7 +4,7 @@ import {
   getDocumentById,
   updateDocumentById,
 } from "@/firebase";
-import { StoredAdvertisement } from "@/types";
+import { PairsData, StoredAdvertisement } from "@/types";
 import { StoredAccount } from "@/types/accounts";
 import { StoredToTrend } from "@/types/trending";
 import { cleanUpBotMessage, hardCleanUpBotMessage } from "@/utils/bot";
@@ -15,7 +15,7 @@ import {
   workchain,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import { BOT_USERNAME, CHANNEL_ID } from "@/utils/env";
+import { BOT_USERNAME, CHANNEL_ID, TOKEN_DATA_URL } from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -280,16 +280,16 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
 
         // Checking if payment was made
         const balance = await walletContract.getBalance();
+        const balanceTon = Number(Number(fromNano(balance)).toFixed(2));
+        const paymentTon = Number(Number(fromNano(paymentAmount)).toFixed(2));
 
-        if (balance < paymentAmount) {
+        if (balanceTon < paymentTon) {
           log(`Transaction amount doesn't match`);
           await sleep(30000);
           continue attemptsCheck;
         }
 
-        const amountTon = fromNano(amount);
-
-        const logText = `${BOT_USERNAME} transaction ${hash} for ${collectionName} verified with payment of ${amountTon} TON.\nSlot ${slot}, duration ${duration} hours`;
+        const logText = `${BOT_USERNAME} transaction ${hash} for ${collectionName} verified with payment of ${amount} TON.\nSlot ${slot}, duration ${duration} hours`;
         log(logText);
         const currentTimestamp = Timestamp.now();
 
@@ -307,33 +307,44 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
         });
 
         const confirmationText = `You have purchased a trending slot ${slot} for ${duration} hours.
-Payment received of - \`${roundUpToDecimalPlace(amountTon, 4)}\` TON
+Payment received of - \`${roundUpToDecimalPlace(amount, 4)}\` TON
 
 Transaction hash for your payment is \`${hash}\`. Your token would be visible, and available to be scanned the next time the bot updates the trending message, so it may take a minute or two. In case of any doubts please reach out to the admins of the bot for any query.
 
 Address Payment Received at - \`${hardCleanUpBotMessage(sentTo)}\``;
 
         if (isTrendingPayment) {
-          const tokenData = (
-            await apiFetcher<TerminalData>(
-              `https://api.geckoterminal.com/api/v2/search/pools?query=${token}&network=ton&page=1`
-            )
-          ).data.data.at(0);
+          const terminalResponse = apiFetcher<TerminalData>(
+            `https://api.geckoterminal.com/api/v2/search/pools?query=${token}&network=ton&page=1`
+          );
+          const dexSResonse = apiFetcher<PairsData>(
+            `${TOKEN_DATA_URL}/${token}`
+          );
 
-          if (tokenData) {
-            const { attributes } = tokenData;
-            const { address, name } = attributes;
-            const [symbol] = name.split("/");
+          const [terminalData, dexSData] = await Promise.all([
+            terminalResponse,
+            dexSResonse,
+          ]);
 
-            const terminalUrl = `https://www.geckoterminal.com/ton/pools/${address}`;
+          const terminalPool = terminalData.data.data.at(0);
+          const dexSPool = dexSData.data.pairs.at(0);
+
+          const name =
+            terminalPool?.attributes.name.split("/").at(0) ||
+            dexSPool?.baseToken.name;
+          const pairAddress =
+            terminalPool?.attributes.address || dexSPool?.pairAddress;
+
+          if (name && pairAddress) {
+            const terminalUrl = `https://www.geckoterminal.com/ton/pools/${pairAddress}`;
             const explorer = `https://tonviewer.com/${token}`;
             const buyLink = `https://app.ston.fi/swap`;
             const trendingLink = `https://t.me/c/2141872035/1159`;
 
-            const text = `✅ New Token is Trending \\- ${symbol}
+            const text = `✅ New Token is Trending \\- ${name}
 
 CA: \`${hardCleanUpBotMessage(token)}\`
-Pool: \`${hardCleanUpBotMessage(address)}\`
+Pool: \`${hardCleanUpBotMessage(pairAddress)}\`
 Link: ${hardCleanUpBotMessage(socials)}
 Ends in: ${duration} Hours
 
@@ -363,9 +374,7 @@ Ends in: ${duration} Hours
           .catch((e) => errorHandler(e));
 
         // Splitting payment
-        splitPayment(decryptedMnemonic, Number(balance)).catch((e) =>
-          errorHandler(e)
-        );
+        splitPayment(decryptedMnemonic, Number(balance));
 
         return true;
       } catch (error) {
