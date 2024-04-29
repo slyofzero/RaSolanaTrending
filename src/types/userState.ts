@@ -3,6 +3,8 @@ export interface ToTrendUserState {
   social?: string;
   duration?: number;
   slot?: number;
+  emoji?: string;
+  gif?: string;
 }
 
 export interface AdvertisementUserState {

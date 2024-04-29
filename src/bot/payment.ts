@@ -15,7 +15,12 @@ import {
   workchain,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import { BOT_USERNAME, CHANNEL_ID, TOKEN_DATA_URL } from "@/utils/env";
+import {
+  BOT_USERNAME,
+  BUY_BOT_API,
+  CHANNEL_ID,
+  TOKEN_DATA_URL,
+} from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -30,7 +35,7 @@ import { tonClient } from "@/rpc";
 import { admins } from "@/vars/admins";
 import { mnemonicToPrivateKey } from "ton-crypto";
 import { WalletContractV4, fromNano, toNano } from "@ton/ton";
-import { apiFetcher } from "@/utils/api";
+import { apiFetcher, apiPoster } from "@/utils/api";
 import { teleBot } from "..";
 import { TerminalData } from "@/types/terminal";
 
@@ -155,12 +160,14 @@ Address - \`${account}\``;
     } as StoredToTrend | StoredAdvertisement;
 
     if (isTrendingPayment) {
-      const { token } = trendingState[chatId];
+      const { token, social, gif, emoji } = trendingState[chatId];
       dataToAdd = {
         ...dataToAdd,
         // @ts-expect-error weird
         token: token || "",
-        socials: trendingState[chatId].social || "",
+        socials: social || "",
+        gif: gif || "",
+        emoji: emoji || "",
       };
     } else {
       const { text, link } = advertisementState[chatId];
@@ -358,6 +365,12 @@ Ends in: ${duration} Hours
         }
 
         const syncFunc = isTrendingPayment ? syncToTrend : syncAdvertisements;
+
+        if (isTrendingPayment) {
+          apiPoster(`${BUY_BOT_API}/syncTrending`);
+        } else {
+          apiPoster(`${BUY_BOT_API}/syncAdvertisements`);
+        }
 
         syncFunc()
           .then(() => {

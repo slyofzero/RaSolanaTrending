@@ -18,6 +18,7 @@ declare global {
       API_AUTH_KEY: string | undefined;
       MAIN_ADDRESS: string | undefined;
       PORT: string | undefined;
+      BUY_BOT_API: string | undefined;
     }
   }
 }

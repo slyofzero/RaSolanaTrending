@@ -21,6 +21,7 @@ export const {
   PORT,
   PAYMENT_LOGS_CHANNEL_ID,
   MAIN_ADDRESS,
+  BUY_BOT_API,
 } = process.env;
 
 export const BOT_URL = `https://t.me/${BOT_USERNAME}`;

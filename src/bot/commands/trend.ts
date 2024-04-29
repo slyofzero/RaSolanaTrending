@@ -59,7 +59,7 @@ export async function addTrendingSocial(ctx: CommandContext<Context>) {
   ctx.reply(text);
 }
 
-export async function selectTrendingDuration(ctx: CommandContext<Context>) {
+export async function setTrendingEmoji(ctx: CommandContext<Context>) {
   const { id: chatId } = ctx.chat;
   const link = ctx.message?.text || "";
 
@@ -68,6 +68,43 @@ export async function selectTrendingDuration(ctx: CommandContext<Context>) {
   }
 
   trendingState[chatId] = { ...trendingState[chatId], social: link };
+  delete userState[chatId];
+
+  ctx.reply(
+    "Send an emoji in the next message, this emoji will be shown in the buybot messages in the trending channel."
+  );
+  userState[chatId] = "trendEmoji";
+}
+
+export async function setTrendingGif(ctx: CommandContext<Context>) {
+  const { id: chatId } = ctx.chat;
+  const emoji = ctx.message?.text || "";
+
+  trendingState[chatId] = { ...trendingState[chatId], emoji };
+  delete userState[chatId];
+
+  ctx.reply(
+    "Send a GIF in the next message, this GIF will be shown in the buybot messages in the trending channel."
+  );
+  userState[chatId] = "trendGif";
+}
+
+export async function selectTrendingDuration(ctx: CommandContext<Context>) {
+  const { id: chatId } = ctx.chat;
+
+  const { message, channel_post } = ctx.update;
+  const { animation, video } = message || channel_post;
+  const videoSource = animation || video;
+
+  if (!videoSource) return ctx.reply("Please send a valid GIF or video");
+
+  const { file_id: gif, mime_type } = videoSource;
+  const isValidMimeType =
+    mime_type?.includes("video") || mime_type?.includes("gif");
+
+  if (!isValidMimeType) return ctx.reply("Please send a valid GIF or video");
+
+  trendingState[chatId] = { ...trendingState[chatId], gif };
   delete userState[chatId];
 
   const text = "Select the duration you want your token to trend for.";

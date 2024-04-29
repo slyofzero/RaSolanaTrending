@@ -20,4 +20,6 @@ export interface StoredToTrend {
   initiatedBy: number;
   username: string;
   socials: string;
+  emoji: string;
+  gif: string;
 }
