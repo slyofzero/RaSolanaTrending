@@ -87,7 +87,8 @@ export async function sendTransaction(
   amount: number,
   to: string,
   message?: string,
-  sendMode?: SendMode
+  sendMode?: SendMode,
+  retryCount: number = 0
 ) {
   try {
     const keypair = await mnemonicToPrivateKey(secretKey);
@@ -123,10 +124,25 @@ export async function sendTransaction(
     log(`Sent ${amount} to ${toAddress}, ${message}`);
     return true;
   } catch (error) {
-    errorHandler(error);
-    log("Retrying...");
-    await sleep(30000);
-    sendTransaction(secretKey, amount, to, message, sendMode);
+    if (retryCount < 5) {
+      // Check if retry count is less than 5
+      errorHandler(error);
+      log("Retrying...");
+      await sleep(30000);
+      // Retry with incremented retry count
+      return sendTransaction(
+        secretKey,
+        amount,
+        to,
+        message,
+        sendMode,
+        retryCount + 1
+      );
+    } else {
+      // If retry count exceeds 5, return false
+      log("Retry limit exceeded. Transaction failed.");
+      return false;
+    }
   }
 }
 
