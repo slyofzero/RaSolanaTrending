@@ -16,10 +16,10 @@ export const wssHeaders = {
   "Sec-WebSocket-Extensions": "permessage-deflate",
 };
 
-export const trendPrices: { [key: number]: number[] } = {
-  3: [300, 250, 200, 160, 140, 120, 100, 80, 60, 35],
-  6: [600, 500, 400, 320, 280, 240, 200, 160, 120, 70],
-  12: [1050, 875, 700, 560, 500, 420, 350, 280, 200, 120],
+export const trendPrices: { [K in 1 | 2 | 3]: { [key: number]: number } } = {
+  1: { 3: 4, 6: 6, 12: 10, 24: 15, 48: 30 },
+  2: { 3: 3, 6: 5, 12: 9, 24: 13, 48: 26 },
+  3: { 3: 2, 6: 4, 12: 8, 24: 12, 48: 23 },
 };
 
 export const adPrices: { [key: number]: number } = {
@@ -34,26 +34,24 @@ export const chatActionInterval = 4000;
 export const splitPaymentsWith: {
   [key: string]: { address: string; share: number };
 } = {
-  dev: {
-    address: "F4Kp3i15C6vxNeP9p83yqoyDxa5nrjF1mbF2dECEiPvD",
-    share: 0.35,
-  },
   main: {
-    address: "3RDaDhepvfiARbYEQ9nUMQNdjVYVDNbohZsWokh9ZRGu",
-    share: 0.55,
+    address: "0QAWUl651KZiAsOS8rXCEjAo93tAqONwWSE5qa0lpsYLDHA-",
+    share: 0.95,
   },
-  revenue: {
-    address: "6pML9ExthZuY36J4aQFphK7ms6iLppzgfetRwzC64hYz",
-    share: 0.1,
+  dev: {
+    address: "0QAWUl651KZiAsOS8rXCEjAo93tAqONwWSE5qa0lpsYLDHA-",
+    share: 0.05,
   },
 };
 
 export const urlRegex =
   /^(?:https?|ftp):\/\/(?:www\.)?[\w-]+\.[a-z]{2,}(?:\/[\w-]*)*\/?(?:\?[^#\s]*)?$/;
-export const ethPriceApi =
-  "https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT";
+export const tonPriceApi =
+  "https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd";
 
 export const DEXSCREEN_URL = "https://dexscreener.com";
 export const residueEth = ethers.utils.parseEther("0.000035").toBigInt();
 export const referralCommisionFee = 0.1;
 export const MCLimit = 5_000_000;
+export const workchain = 0;
+export const avgGasFees = 0.025;

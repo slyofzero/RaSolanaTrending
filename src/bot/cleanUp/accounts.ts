@@ -1,9 +1,8 @@
 import { getDocument, updateDocumentById } from "@/firebase";
-import { solanaConnection } from "@/rpc";
+import { tonClient } from "@/rpc";
 import { StoredAccount } from "@/types";
-import { decrypt } from "@/utils/cryptography";
 import { errorHandler } from "@/utils/handlers";
-import { Keypair } from "@solana/web3.js";
+import { Address } from "@ton/ton";
 
 export async function unlockUnusedAccounts() {
   const lockedAccounts = (await getDocument({
@@ -11,14 +10,11 @@ export async function unlockUnusedAccounts() {
     queries: [["locked", "==", true]],
   })) as StoredAccount[];
 
-  for (const { id, secretKey } of lockedAccounts) {
+  for (const { id, publicKey } of lockedAccounts) {
     try {
-      const account = Keypair.fromSecretKey(
-        new Uint8Array(JSON.parse(decrypt(secretKey)))
-      );
-      const balance = await solanaConnection.getBalance(account.publicKey);
+      const balance = await tonClient.getBalance(Address.parse(publicKey));
 
-      if (balance === 0) {
+      if (balance === 0n) {
         updateDocumentById({
           updates: { locked: false, lockedAt: null },
           collectionName: "accounts",

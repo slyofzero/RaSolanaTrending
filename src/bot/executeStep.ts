@@ -1,5 +1,9 @@
 import { CallbackQueryContext, CommandContext, Context } from "grammy";
-import { selectTrendingDuration, selectTrendingSlot } from "./commands/trend";
+import {
+  addTrendingSocial,
+  prepareTrendingState,
+  selectTrendingDuration,
+} from "./commands/trend";
 import { userState } from "@/vars/state";
 import { confirmPayment, preparePayment } from "./payment";
 import {
@@ -10,9 +14,10 @@ import {
 import { log } from "@/utils/handlers";
 
 const steps: { [key: string]: any } = {
-  toTrend: selectTrendingDuration,
-  trendDuration: selectTrendingSlot,
-  trendSlot: preparePayment,
+  toTrend: addTrendingSocial,
+  trendSocials: selectTrendingDuration,
+  trendDuration: prepareTrendingState,
+  // trendSlot: preparePayment,
   trendingPayment: confirmPayment,
 
   advertiseText: advertiseLink,

@@ -1,7 +1,8 @@
 export interface ToTrendUserState {
   token?: string;
-  slot?: number;
+  social?: string;
   duration?: number;
+  slot?: number;
 }
 
 export interface AdvertisementUserState {

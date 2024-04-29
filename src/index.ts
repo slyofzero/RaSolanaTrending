@@ -10,12 +10,12 @@ import { processTrendingPairs } from "./bot/processTrendingPairs";
 import { getNowTimestamp, getSecondsElapsed } from "./utils/time";
 import { syncToTrend, trendingTokens } from "./vars/trending";
 import { updateTrendingMessage } from "./bot/updateTrendingMessage";
-import { sendToTrendTokensMsg } from "./bot/checkNewTrending";
 import { syncAdvertisements } from "./vars/advertisements";
 import { cleanUpExpired } from "./bot/cleanUp";
 import { rpcConfig } from "./rpc";
 import express, { Request, Response } from "express";
 import { syncAdmins } from "./vars/admins";
+import { unlockUnusedAccounts } from "./bot/cleanUp/accounts";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -30,13 +30,19 @@ const app = express();
 log("Express server ready");
 
 (async function () {
-  rpcConfig();
+  await rpcConfig();
   teleBot.start();
   log("Telegram bot setup");
   initiateBotCommands();
   initiateCallbackQueries();
 
-  await Promise.all([syncToTrend(), syncAdvertisements(), syncAdmins()]);
+  await Promise.all([
+    syncToTrend(),
+    syncAdvertisements(),
+    syncAdmins(),
+    unlockUnusedAccounts(),
+  ]);
+
   const ws = new WebSocket(DEX_URL, { headers: wssHeaders });
 
   function connectWebSocket() {
@@ -65,14 +71,13 @@ log("Express server ready");
         await processTrendingPairs(pairs);
 
         updateTrendingMessage();
-
         cleanUpExpired();
       }
     });
   }
 
+  setInterval(unlockUnusedAccounts, 60 * 60 * 1e3);
   connectWebSocket();
-  setInterval(sendToTrendTokensMsg, 30 * 60 * 1e3);
 
   app.use(express.json());
 

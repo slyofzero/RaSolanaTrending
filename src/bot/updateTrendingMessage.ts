@@ -42,23 +42,25 @@ export async function updateTrendingMessage() {
 
   try {
     // ------------------------------ Trending Message ------------------------------
-    for (const [index, [token, tokenData]] of trendingTokens.entries()) {
+    for (const [index, [token, tokenData]] of trendingTokens
+      .slice(0, 20)
+      .entries()) {
       if (index === 3 || index === 10) {
         trendingTokensMessage += cleanUpBotMessage(
           "--------------------------\n"
         );
       }
 
-      const { baseToken, priceChange } = tokenData;
+      const { baseToken, priceChange, socials } = tokenData;
       const { symbol } = baseToken;
       const priceChangeh24 = priceChange.h24;
       const icon = icons[index];
 
-      const url = `${DEXSCREEN_URL}/ton/${token}`;
+      const url = socials || `${DEXSCREEN_URL}/ton/${token}`;
       const cleanedTokenSymbol = hardCleanUpBotMessage(symbol);
       const formattedPriceChange = formatM2Number(priceChangeh24);
 
-      let newLine = `${icon} \\- [*$${cleanedTokenSymbol}*](${url}) \\| [*${formattedPriceChange}*](${url})%\n`;
+      let newLine = `${icon} [*$${cleanedTokenSymbol} \\| ${formattedPriceChange}%*](${url})\n`;
       newLine = newLine.trimStart();
       trendingTokensMessage += newLine;
     }

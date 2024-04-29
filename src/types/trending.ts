@@ -1,13 +1,17 @@
 import { PairData } from "./pairData";
 import { Timestamp } from "firebase-admin/firestore";
 
-export type TrendingTokens = [string, PairData][];
+export interface TrendingData extends PairData {
+  socials?: string;
+}
+
+export type TrendingTokens = [string, TrendingData][];
 export interface StoredToTrend {
   id?: string;
   token: string;
   status: "PENDING" | "PAID" | "EXPIRED" | "MANUAL";
   hash: string;
-  slot: number;
+  slot: 1 | 2 | 3;
   duration: number;
   sentTo: string;
   amount: number;
@@ -15,4 +19,5 @@ export interface StoredToTrend {
   expiresAt?: Timestamp;
   initiatedBy: number;
   username: string;
+  socials: string;
 }

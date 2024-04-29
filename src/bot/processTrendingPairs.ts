@@ -1,5 +1,5 @@
-import { PairData, PairsData, WSSPairData } from "@/types";
-import { TrendingTokens } from "@/types/trending";
+import { PairsData, WSSPairData } from "@/types";
+import { TrendingData, TrendingTokens } from "@/types/trending";
 import { apiFetcher } from "@/utils/api";
 import { TOKEN_DATA_URL } from "@/utils/env";
 import { log } from "@/utils/handlers";
@@ -38,11 +38,19 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
     }
   }
 
-  for (const { slot, token } of toTrendTokens) {
+  for (const tokenData of toTrendTokens) {
+    const { slot, token, socials } = tokenData;
     try {
       const alreadyTrendingRank = newTopTrendingTokens.findIndex(
         ([storedToken]) => storedToken === token
       );
+
+      let slotRange = [1, 3];
+      if (slot === 2) slotRange = [4, 10];
+      else if (slot === 3) slotRange = [11, 20];
+
+      const [min, max] = slotRange;
+      const slotToTrend = Math.floor(Math.random() * (max - min + 1)) + min;
 
       if (alreadyTrendingRank !== -1) {
         if (slot < alreadyTrendingRank) {
@@ -50,7 +58,7 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
             alreadyTrendingRank,
             1
           );
-          newTopTrendingTokens.splice(slot, 0, tokenData);
+          newTopTrendingTokens.splice(slotToTrend, 0, tokenData);
         }
         continue;
       }
@@ -60,8 +68,11 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
       );
       const firstPair = pairData.data.pairs.at(0);
       if (!firstPair) continue;
-      const newTrendingPair: [string, PairData] = [token, firstPair];
-      newTopTrendingTokens.splice(slot - 1, 0, newTrendingPair);
+      const newTrendingPair: [string, TrendingData] = [
+        token,
+        { ...firstPair, socials },
+      ];
+      newTopTrendingTokens.splice(slotToTrend - 1, 0, newTrendingPair);
     } catch (error) {
       const err = error as Error;
       log(err.message);

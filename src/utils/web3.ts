@@ -1,135 +1,133 @@
-import { ethers } from "ethers";
 import { errorHandler, log } from "./handlers";
-import { referralCommisionFee, splitPaymentsWith } from "./constants";
-import { getDocument, updateDocumentById } from "@/firebase";
-import { StoredReferral } from "@/types";
-import nacl from "tweetnacl";
-import { solanaConnection } from "@/rpc";
-import web3, { PublicKey } from "@solana/web3.js";
+import { avgGasFees, splitPaymentsWith, workchain } from "./constants";
+import { mnemonicNew, mnemonicToPrivateKey } from "ton-crypto";
+import { tonClient } from "@/rpc";
+import { Address, WalletContractV4, internal, toNano } from "@ton/ton";
 
-export function isValidSolAddress(address: string) {
+export function isValidTonAddress(address: string) {
   try {
-    new PublicKey(address);
+    Address.parse(address).toRawString();
     return true;
   } catch (error) {
     return false;
   }
 }
 
-export function generateAccount() {
-  const randomBytes = ethers.utils.randomBytes(32);
-  const mnemonic = ethers.utils.entropyToMnemonic(randomBytes);
-  const seed = ethers.utils.mnemonicToSeed(mnemonic);
-  const hex = Uint8Array.from(Buffer.from(seed));
-  const keyPair = nacl.sign.keyPair.fromSeed(hex.slice(0, 32));
-  const { publicKey, secretKey } = new web3.Keypair(keyPair);
+export async function generateAccount() {
+  const mnemonic = await mnemonicNew();
+  const keypair = await mnemonicToPrivateKey(mnemonic);
+  const wallet = WalletContractV4.create({
+    workchain,
+    publicKey: keypair.publicKey,
+  });
+
   const data = {
-    publicKey: publicKey.toString(),
-    secretKey: `[${secretKey.toString()}]`,
+    publicKey: wallet.address.toString(),
+    secretKey: mnemonic,
   };
   return data;
 }
 
+// export async function sendTransaction(
+//   secretKey: string,
+//   amount: number,
+//   to?: string
+// ) {
+//   let attempts = 0;
+
+//   try {
+//     if (!to) {
+//       return false;
+//     }
+
+//     attempts += 1;
+
+//     const { lamportsPerSignature } = (
+//       await solanaConnection.getRecentBlockhash("confirmed")
+//     ).feeCalculator;
+
+//     const secretKeyArray = new Uint8Array(JSON.parse(secretKey));
+//     const account = web3.Keypair.fromSecretKey(secretKeyArray);
+//     const toPubkey = new PublicKey(to);
+
+//     const transaction = new web3.Transaction().add(
+//       web3.SystemProgram.transfer({
+//         fromPubkey: account.publicKey,
+//         toPubkey,
+//         lamports: amount - lamportsPerSignature,
+//       })
+//     );
+
+//     const signature = await web3.sendAndConfirmTransaction(
+//       solanaConnection,
+//       transaction,
+//       [account]
+//     );
+//     return signature;
+//   } catch (error) {
+//     log(`No transaction for ${amount} to ${to}`);
+//     errorHandler(error);
+
+//     if (attempts < 1) {
+//       sendTransaction(secretKey, amount, to);
+//     }
+//   }
+// }
+
 export async function sendTransaction(
-  secretKey: string,
+  secretKey: string[],
   amount: number,
-  to?: string
+  to: string,
+  message?: string
 ) {
-  let attempts = 0;
-
   try {
-    if (!to) {
-      return false;
-    }
+    const keypair = await mnemonicToPrivateKey(secretKey);
+    const wallet = WalletContractV4.create({
+      workchain: 0,
+      publicKey: keypair.publicKey,
+    });
+    const contract = tonClient.open(wallet);
+    const seqno = await contract.getSeqno();
+    const amountAfterFees = amount - avgGasFees;
+    const toAddress = Address.parse(to).toString({ urlSafe: true });
 
-    attempts += 1;
+    await contract.sendTransfer({
+      seqno,
+      secretKey: keypair.secretKey,
+      messages: [
+        internal({
+          to,
+          value: toNano(amountAfterFees.toFixed(2)),
+          body: message,
+          bounce: false,
+        }),
+      ],
+    });
 
-    const { lamportsPerSignature } = (
-      await solanaConnection.getRecentBlockhash("confirmed")
-    ).feeCalculator;
-
-    const secretKeyArray = new Uint8Array(JSON.parse(secretKey));
-    const account = web3.Keypair.fromSecretKey(secretKeyArray);
-    const toPubkey = new PublicKey(to);
-
-    const transaction = new web3.Transaction().add(
-      web3.SystemProgram.transfer({
-        fromPubkey: account.publicKey,
-        toPubkey,
-        lamports: amount - lamportsPerSignature,
-      })
-    );
-
-    const signature = await web3.sendAndConfirmTransaction(
-      solanaConnection,
-      transaction,
-      [account]
-    );
-    return signature;
+    log(`Sent ${amountAfterFees} to ${toAddress}, ${message}`);
+    return true;
   } catch (error) {
-    log(`No transaction for ${amount} to ${to}`);
     errorHandler(error);
-
-    if (attempts < 1) {
-      sendTransaction(secretKey, amount, to);
-    }
   }
 }
 
 export async function splitPayment(
-  secretKey: string,
-  totalPaymentAmount: number,
-  referrer?: number
+  secretKey: string[],
+  totalPaymentAmount: number
 ) {
   try {
-    const { dev, main, revenue } = splitPaymentsWith;
+    const { dev, main } = splitPaymentsWith;
 
     // ------------------------------ Calculating shares ------------------------------
     const devShare = Math.ceil(dev.share * totalPaymentAmount);
-    const shareLeft = totalPaymentAmount - devShare;
-
-    let referralAddress = "";
-    let referralShare = 0;
-
-    if (referrer) {
-      const [referralData] = await getDocument<StoredReferral>({
-        collectionName: "referral",
-        queries: [["referrer", "==", referrer]],
-      });
-
-      if (referralData.walletAddress) {
-        referralAddress = referralData.walletAddress;
-        referralShare = Math.floor(shareLeft * referralCommisionFee);
-
-        const newFeesCollected =
-          (referralData.feesCollected || 0) + referralShare;
-
-        updateDocumentById<StoredReferral>({
-          id: referralData.id || "",
-          collectionName: "referral",
-          updates: { feesCollected: newFeesCollected },
-        });
-      }
-    }
-
-    const revenueShare = Math.floor(shareLeft * revenue.share);
-    const mainShare = shareLeft - (referralShare + revenueShare);
+    const mainShare = totalPaymentAmount - devShare;
 
     // ------------------------------ Txns ------------------------------
     const devTx = await sendTransaction(secretKey, devShare, dev.address);
     if (devTx) log(`Dev share ${devShare} sent ${devTx}`);
 
-    if (referralAddress) {
-      const refTx = await sendTransaction(
-        secretKey,
-        referralShare,
-        referralAddress
-      );
-      if (refTx) log(`Referral Share ${referralShare} sent ${refTx}`);
-    }
-
-    const revTx = await sendTransaction(secretKey, revenueShare, revenue.address); // prettier-ignore
-    if (revTx) log(`Revenue share ${revenueShare} sent ${revTx}`);
+    // const revTx = await sendTransaction(secretKey, revenueShare, revenue.address); // prettier-ignore
+    // if (revTx) log(`Revenue share ${revenueShare} sent ${revTx}`);
 
     const mainTx = await sendTransaction(secretKey, mainShare, main.address); // prettier-ignore
     if (mainTx) log(`Main share ${mainShare} sent ${mainTx}`);

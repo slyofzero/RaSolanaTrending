@@ -1,13 +1,11 @@
-import { RPC_URL } from "@/utils/env";
+import { TonClient } from "@ton/ton";
+import { getHttpEndpoint } from "@orbs-network/ton-access";
 import { log } from "@/utils/handlers";
-import { Connection } from "@solana/web3.js";
 
-export let solanaConnection: Connection = null as unknown as Connection;
+export let tonClient: TonClient = null as unknown as TonClient;
 
-export function rpcConfig() {
-  if (!RPC_URL) {
-    log("RPC endpoint is undefined");
-  }
-  solanaConnection = new Connection(RPC_URL || "");
-  log("RPC configured");
+export async function rpcConfig() {
+  const endpoint = await getHttpEndpoint({ network: "testnet" });
+  tonClient = new TonClient({ endpoint });
+  log("Ton client ready");
 }
