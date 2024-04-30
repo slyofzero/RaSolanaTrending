@@ -26,6 +26,9 @@ export function initiateBotCommands() {
   teleBot.command("trend", (ctx) => trend(ctx));
   teleBot.command("advertise", (ctx) => advertise(ctx));
 
+  teleBot.on([":animation"], (ctx) => {
+    console.log(ctx.update.message?.animation);
+  });
   // @ts-expect-error Type not found
   teleBot.on(["message"], (ctx) => executeStep(ctx));
 

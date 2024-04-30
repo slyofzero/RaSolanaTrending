@@ -19,6 +19,8 @@ declare global {
       MAIN_ADDRESS: string | undefined;
       PORT: string | undefined;
       BUY_BOT_API: string | undefined;
+      TRENDING_PRICES: string | undefined;
+      AD_PRICES: string | undefined;
     }
   }
 }

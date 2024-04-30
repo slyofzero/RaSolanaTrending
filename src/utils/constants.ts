@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { FIREBASE_PREFIX } from "./env";
+import { AD_PRICES, FIREBASE_PREFIX, TRENDING_PRICES } from "./env";
 
 export const firebaseCollectionPrefix = `_${FIREBASE_PREFIX}`;
 export const wssHeaders = {
@@ -16,17 +16,8 @@ export const wssHeaders = {
   "Sec-WebSocket-Extensions": "permessage-deflate",
 };
 
-export const trendPrices: { [K in 1 | 2 | 3]: { [key: number]: number } } = {
-  1: { 3: 4, 6: 6, 12: 10, 24: 15, 48: 30 },
-  2: { 3: 3, 6: 5, 12: 9, 24: 13, 48: 26 },
-  3: { 3: 2, 6: 4, 12: 8, 24: 12, 48: 23 },
-};
-
-export const adPrices: { [key: number]: number } = {
-  4: 8,
-  12: 20,
-  24: 35,
-};
+export const trendPrices: { [K in 1 | 2 | 3]: { [key: number]: number } } = JSON.parse(TRENDING_PRICES || "");
+export const adPrices: { [key: number]: number } = JSON.parse(AD_PRICES || "");
 
 export const transactionValidTime = 25 * 60;
 export const chatActionInterval = 4000;
