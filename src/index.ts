@@ -50,49 +50,41 @@ log("Express server ready");
     unlockUnusedAccounts(),
   ]);
 
-  teleBot.api.sendMessage(
-    CHANNEL_ID || "",
-    `[${hardCleanUpBotMessage("@#$%^&*()!_><?{}[]")}](https://google.com)`,
-    {
-      parse_mode: "MarkdownV2",
-    }
-  );
+  const ws = new WebSocket(DEX_URL, { headers: wssHeaders });
 
-  // const ws = new WebSocket(DEX_URL, { headers: wssHeaders });
+  function connectWebSocket() {
+    ws.on("open", function open() {
+      log("Connected");
+    });
 
-  // function connectWebSocket() {
-  //   ws.on("open", function open() {
-  //     log("Connected");
-  //   });
+    ws.on("close", function close() {
+      log("Disconnected");
+      process.exit(1);
+    });
 
-  //   ws.on("close", function close() {
-  //     log("Disconnected");
-  //     process.exit(1);
-  //   });
+    ws.on("error", function error() {
+      log("Error");
+      process.exit(1);
+    });
 
-  //   ws.on("error", function error() {
-  //     log("Error");
-  //     process.exit(1);
-  //   });
+    ws.on("message", async (event) => {
+      const str = event.toString();
+      const data = JSON.parse(str);
+      const { pairs } = data as { pairs: WSSPairData[] | undefined };
+      const lastFetched = getSecondsElapsed(fetchedAt);
 
-  //   ws.on("message", async (event) => {
-  //     const str = event.toString();
-  //     const data = JSON.parse(str);
-  //     const { pairs } = data as { pairs: WSSPairData[] | undefined };
-  //     const lastFetched = getSecondsElapsed(fetchedAt);
+      if (pairs && lastFetched > 60) {
+        fetchedAt = getNowTimestamp();
+        await processTrendingPairs(pairs);
 
-  //     if (pairs && lastFetched > 60) {
-  //       fetchedAt = getNowTimestamp();
-  //       await processTrendingPairs(pairs);
+        updateTrendingMessage();
+        cleanUpExpired();
+      }
+    });
+  }
 
-  //       updateTrendingMessage();
-  //       cleanUpExpired();
-  //     }
-  //   });
-  // }
-
-  // setInterval(unlockUnusedAccounts, 60 * 60 * 1e3);
-  // connectWebSocket();
+  setInterval(unlockUnusedAccounts, 60 * 60 * 1e3);
+  connectWebSocket();
 
   app.use(express.json());
 
