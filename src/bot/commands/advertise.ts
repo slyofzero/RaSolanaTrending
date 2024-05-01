@@ -33,6 +33,10 @@ export async function advertiseLink(ctx: CommandContext<Context>) {
   const { id: chatId } = ctx.chat;
   const adText = ctx.message?.text;
 
+  if (adText?.length || 0 > 126) {
+    return ctx.reply("Ad text cannot be greater than 126 characters");
+  }
+
   advertisementState[chatId] = { text: adText };
 
   userState[chatId] = "advertiseLink";

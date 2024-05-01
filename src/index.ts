@@ -2,7 +2,13 @@ import { Address } from "@ton/ton";
 import { Bot } from "grammy";
 import { initiateBotCommands, initiateCallbackQueries } from "./bot";
 import { log } from "./utils/handlers";
-import { API_AUTH_KEY, BOT_TOKEN, DEX_URL, PORT } from "./utils/env";
+import {
+  API_AUTH_KEY,
+  BOT_TOKEN,
+  CHANNEL_ID,
+  DEX_URL,
+  PORT,
+} from "./utils/env";
 import { WebSocket } from "ws";
 import { wssHeaders } from "./utils/constants";
 import { WSSPairData } from "./types";
@@ -16,6 +22,7 @@ import { rpcConfig } from "./rpc";
 import express, { Request, Response } from "express";
 import { syncAdmins } from "./vars/admins";
 import { unlockUnusedAccounts } from "./bot/cleanUp/accounts";
+import { hardCleanUpBotMessage } from "./utils/bot";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -43,41 +50,49 @@ log("Express server ready");
     unlockUnusedAccounts(),
   ]);
 
-  const ws = new WebSocket(DEX_URL, { headers: wssHeaders });
+  teleBot.api.sendMessage(
+    CHANNEL_ID || "",
+    `[${hardCleanUpBotMessage("@#$%^&*()!_><?{}[]")}](https://google.com)`,
+    {
+      parse_mode: "MarkdownV2",
+    }
+  );
 
-  function connectWebSocket() {
-    ws.on("open", function open() {
-      log("Connected");
-    });
+  // const ws = new WebSocket(DEX_URL, { headers: wssHeaders });
 
-    ws.on("close", function close() {
-      log("Disconnected");
-      process.exit(1);
-    });
+  // function connectWebSocket() {
+  //   ws.on("open", function open() {
+  //     log("Connected");
+  //   });
 
-    ws.on("error", function error() {
-      log("Error");
-      process.exit(1);
-    });
+  //   ws.on("close", function close() {
+  //     log("Disconnected");
+  //     process.exit(1);
+  //   });
 
-    ws.on("message", async (event) => {
-      const str = event.toString();
-      const data = JSON.parse(str);
-      const { pairs } = data as { pairs: WSSPairData[] | undefined };
-      const lastFetched = getSecondsElapsed(fetchedAt);
+  //   ws.on("error", function error() {
+  //     log("Error");
+  //     process.exit(1);
+  //   });
 
-      if (pairs && lastFetched > 60) {
-        fetchedAt = getNowTimestamp();
-        await processTrendingPairs(pairs);
+  //   ws.on("message", async (event) => {
+  //     const str = event.toString();
+  //     const data = JSON.parse(str);
+  //     const { pairs } = data as { pairs: WSSPairData[] | undefined };
+  //     const lastFetched = getSecondsElapsed(fetchedAt);
 
-        updateTrendingMessage();
-        cleanUpExpired();
-      }
-    });
-  }
+  //     if (pairs && lastFetched > 60) {
+  //       fetchedAt = getNowTimestamp();
+  //       await processTrendingPairs(pairs);
 
-  setInterval(unlockUnusedAccounts, 60 * 60 * 1e3);
-  connectWebSocket();
+  //       updateTrendingMessage();
+  //       cleanUpExpired();
+  //     }
+  //   });
+  // }
+
+  // setInterval(unlockUnusedAccounts, 60 * 60 * 1e3);
+  // connectWebSocket();
 
   app.use(express.json());
 
