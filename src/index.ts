@@ -93,15 +93,15 @@ log("Express server ready");
   });
 
   app.get("/trending", (req: Request, res: Response) => {
-    if (req.headers.authorization !== API_AUTH_KEY) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
-    }
+    // if (req.headers.authorization !== API_AUTH_KEY) {
+    //   res.status(401).json({ message: "Unauthorized" });
+    //   return;
+    // }
 
     // eslint-disable-next-line
-    const trendingTokensList = trendingTokens.map(([token]) =>
-      Address.parse(token).toRawString()
-    );
+    const trendingTokensList = trendingTokens
+      .map(([token]) => Address.parse(token).toRawString())
+      .slice(0, 20);
 
     return res.status(200).json({ trendingTokens: trendingTokensList });
   });

@@ -51,9 +51,11 @@ export async function updateTrendingMessage() {
         );
       }
 
-      const { baseToken, priceChange, socials } = tokenData;
-      const { symbol } = baseToken;
-      const priceChangeh24 = priceChange.h24;
+      const { socials, attributes } = tokenData;
+      const { price_change_percentage, name } = attributes;
+      const symbol = name.split("/").at(0);
+      console.log(symbol, socials);
+      const priceChangeh24 = price_change_percentage.h24;
       const icon = icons[index];
 
       const url = socials || `${DEXSCREEN_URL}/ton/${token}`;
@@ -78,6 +80,7 @@ export async function updateTrendingMessage() {
         disable_web_page_preview: true,
         reply_markup: keyboard,
       })
+      .then(() => log("Updated trending"))
       .catch(async (e) => errorHandler(e));
   } catch (error) {
     errorHandler(error);

@@ -23,5 +23,5 @@ export async function syncToTrend() {
     .sort((a, b) => a.slot - b.slot)
     .filter(({ status }) => ["PAID", "MANUAL"].includes(status));
 
-  log(`Synced to_trend data`);
+  log(`Synced to_trend data ${toTrendTokens.length}`);
 }
