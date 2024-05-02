@@ -2,6 +2,7 @@ import { PairsData, WSSPairData } from "@/types";
 import { TokenPoolData } from "@/types/terminalData";
 import { TrendingData, TrendingTokens } from "@/types/trending";
 import { apiFetcher } from "@/utils/api";
+import { bannedTokens } from "@/utils/constants";
 import { COINGECKO_API_KEY, TOKEN_DATA_URL } from "@/utils/env";
 import { log } from "@/utils/handlers";
 import {
@@ -30,7 +31,8 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
       );
 
       const firstPair = pairData.data.data?.at(0);
-      if (!firstPair || tokenAlreadyInTop15) continue;
+      const tokenIsBanned = bannedTokens.includes(address);
+      if (!firstPair || tokenAlreadyInTop15 || tokenIsBanned) continue;
 
       newTopTrendingTokens.push([address, firstPair]);
     } catch (error) {

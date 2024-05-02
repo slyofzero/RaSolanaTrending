@@ -16,7 +16,8 @@ export const wssHeaders = {
   "Sec-WebSocket-Extensions": "permessage-deflate",
 };
 
-export const trendPrices: { [K in 1 | 2 | 3]: { [key: number]: number } } = JSON.parse(TRENDING_PRICES || "");
+export const trendPrices: { [K in 1 | 2 | 3]: { [key: number]: number } } =
+  JSON.parse(TRENDING_PRICES || "");
 export const adPrices: { [key: number]: number } = JSON.parse(AD_PRICES || "");
 
 export const transactionValidTime = 25 * 60;
@@ -46,3 +47,7 @@ export const referralCommisionFee = 0.1;
 export const MCLimit = 5_000_000;
 export const workchain = 0;
 export const avgGasFees = 0.025;
+export const bannedTokens = [
+  "EQBynBO23ywHy_CgarY9NK9FTz0yDsG82PtcbSTQgGoXwiuA",
+  "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+];
