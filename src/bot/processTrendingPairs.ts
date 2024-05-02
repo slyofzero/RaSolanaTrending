@@ -2,7 +2,7 @@ import { PairsData, WSSPairData } from "@/types";
 import { TokenPoolData } from "@/types/terminalData";
 import { TrendingData, TrendingTokens } from "@/types/trending";
 import { apiFetcher } from "@/utils/api";
-import { TOKEN_DATA_URL } from "@/utils/env";
+import { COINGECKO_API_KEY, TOKEN_DATA_URL } from "@/utils/env";
 import { log } from "@/utils/handlers";
 import {
   previouslyTrendingTokens,
@@ -21,18 +21,15 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
       const { address } = baseToken;
 
       const pairData = await apiFetcher<TokenPoolData>(
-        `https://api.geckoterminal.com/api/v2/search/pools?query=${address}&network=ton&page=1`
+        `https://pro-api.coingecko.com/api/v3/onchain/networks/ton/tokens/${address}/pools`,
+        { "x-cg-pro-api-key": COINGECKO_API_KEY || "" }
       );
-
-      // const pairData = await apiFetcher<PairsData>(
-      //   `${TOKEN_DATA_URL}/${address}`
-      // );
 
       const tokenAlreadyInTop15 = newTopTrendingTokens.some(
         ([token]) => token === address
       );
 
-      const firstPair = pairData.data.data.at(0);
+      const firstPair = pairData.data.data?.at(0);
       if (!firstPair || tokenAlreadyInTop15) continue;
 
       newTopTrendingTokens.push([address, firstPair]);
@@ -69,7 +66,8 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
       }
 
       const pairData = await apiFetcher<TokenPoolData>(
-        `https://api.geckoterminal.com/api/v2/search/pools?query=${token}&network=ton&page=1`
+        `https://pro-api.coingecko.com/api/v3/onchain/networks/ton/tokens/${token}/pools`,
+        { "x-cg-pro-api-key": COINGECKO_API_KEY || "" }
       );
 
       // const pairData = await apiFetcher<PairsData>(

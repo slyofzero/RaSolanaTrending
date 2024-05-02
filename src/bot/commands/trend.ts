@@ -14,12 +14,13 @@ import { isValidUrl } from "@/utils/general";
 import { TerminalData } from "@/types/terminal";
 import { PairsData } from "@/types";
 import { TOKEN_DATA_URL } from "@/utils/env";
+import { errorHandler } from "@/utils/handlers";
 
 export async function trend(ctx: CommandContext<Context>) {
   const { id: chatId } = ctx.chat;
   userState[chatId] = "toTrend";
   const text = `To trend a token, please provide the token's address in the next message`;
-  ctx.reply(text);
+  ctx.reply(text).catch((e) => errorHandler(e));
 }
 
 export async function addTrendingSocial(ctx: CommandContext<Context>) {
@@ -56,7 +57,7 @@ export async function addTrendingSocial(ctx: CommandContext<Context>) {
 
   userState[chatId] = "trendSocials";
   const text = `Please pass a social link related to the token in the next message`;
-  ctx.reply(text);
+  ctx.reply(text).catch((e) => errorHandler(e));
 }
 
 export async function setTrendingEmoji(ctx: CommandContext<Context>) {

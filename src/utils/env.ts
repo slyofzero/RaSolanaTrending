@@ -23,7 +23,8 @@ export const {
   MAIN_ADDRESS,
   BUY_BOT_API,
   TRENDING_PRICES,
-  AD_PRICES
+  AD_PRICES,
+  COINGECKO_API_KEY,
 } = process.env;
 
 export const BOT_URL = `https://t.me/${BOT_USERNAME}`;

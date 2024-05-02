@@ -21,6 +21,7 @@ declare global {
       BUY_BOT_API: string | undefined;
       TRENDING_PRICES: string | undefined;
       AD_PRICES: string | undefined;
+      COINGECKO_API_KEY: string | undefined;
     }
   }
 }

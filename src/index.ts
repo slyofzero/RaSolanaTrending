@@ -93,10 +93,10 @@ log("Express server ready");
   });
 
   app.get("/trending", (req: Request, res: Response) => {
-    // if (req.headers.authorization !== API_AUTH_KEY) {
-    //   res.status(401).json({ message: "Unauthorized" });
-    //   return;
-    // }
+    if (req.headers.authorization !== API_AUTH_KEY) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
     // eslint-disable-next-line
     const trendingTokensList = trendingTokens
