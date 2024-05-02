@@ -1,5 +1,10 @@
 import { ethers } from "ethers";
-import { AD_PRICES, FIREBASE_PREFIX, TRENDING_PRICES } from "./env";
+import {
+  AD_PRICES,
+  BANNED_TOKENS,
+  FIREBASE_PREFIX,
+  TRENDING_PRICES,
+} from "./env";
 
 export const firebaseCollectionPrefix = `_${FIREBASE_PREFIX}`;
 export const wssHeaders = {
@@ -47,7 +52,4 @@ export const referralCommisionFee = 0.1;
 export const MCLimit = 5_000_000;
 export const workchain = 0;
 export const avgGasFees = 0.025;
-export const bannedTokens = [
-  "EQBynBO23ywHy_CgarY9NK9FTz0yDsG82PtcbSTQgGoXwiuA",
-  "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
-];
+export const bannedTokens = JSON.parse(BANNED_TOKENS || "[]");

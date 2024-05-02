@@ -25,6 +25,7 @@ export const {
   TRENDING_PRICES,
   AD_PRICES,
   COINGECKO_API_KEY,
+  BANNED_TOKENS,
 } = process.env;
 
 export const BOT_URL = `https://t.me/${BOT_USERNAME}`;
