@@ -54,7 +54,6 @@ export async function updateTrendingMessage() {
       const { socials, attributes } = tokenData;
       const { price_change_percentage, name } = attributes;
       const symbol = name.split("/").at(0);
-      console.log(symbol, socials);
       const priceChangeh24 = price_change_percentage.h24;
       const icon = icons[index];
 

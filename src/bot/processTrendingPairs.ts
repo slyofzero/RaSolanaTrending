@@ -68,8 +68,6 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
         continue;
       }
 
-      console.log(slot, socials);
-
       const pairData = await apiFetcher<TokenPoolData>(
         `https://api.geckoterminal.com/api/v2/search/pools?query=${token}&network=ton&page=1`
       );
