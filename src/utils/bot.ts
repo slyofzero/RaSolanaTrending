@@ -1,6 +1,5 @@
 import { InlineKeyboard } from "grammy";
 import { advertisements } from "@/vars/advertisements";
-import { BOT_URL } from "./env";
 
 // eslint-disable-next-line
 export function cleanUpBotMessage(text: any) {
@@ -48,7 +47,7 @@ export function generateAdvertisementKeyboard() {
       const { text, link } = adSlot;
       keyboard = keyboard.url(text, link).row();
     } else {
-      const buttonLink = `${BOT_URL}?start=adBuyRequest`;
+      const buttonLink = `https://t.me/InsectTonBuyBot?start=adBuyRequest`;
       keyboard = keyboard.url("⚡ Advertise here", buttonLink).row();
     }
   }

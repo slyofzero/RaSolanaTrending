@@ -2,27 +2,20 @@ import { Address } from "@ton/ton";
 import { Bot } from "grammy";
 import { initiateBotCommands, initiateCallbackQueries } from "./bot";
 import { log } from "./utils/handlers";
-import {
-  API_AUTH_KEY,
-  BOT_TOKEN,
-  CHANNEL_ID,
-  DEX_URL,
-  PORT,
-} from "./utils/env";
+import { API_AUTH_KEY, BOT_TOKEN, DEX_URL, PORT } from "./utils/env";
 import { WebSocket } from "ws";
 import { wssHeaders } from "./utils/constants";
 import { WSSPairData } from "./types";
 import { processTrendingPairs } from "./bot/processTrendingPairs";
 import { getNowTimestamp, getSecondsElapsed } from "./utils/time";
-import { syncToTrend, trendingTokens } from "./vars/trending";
+import { syncToTrend, toTrendTokens, trendingTokens } from "./vars/trending";
 import { updateTrendingMessage } from "./bot/updateTrendingMessage";
-import { syncAdvertisements } from "./vars/advertisements";
+import { advertisements, syncAdvertisements } from "./vars/advertisements";
 import { cleanUpExpired } from "./bot/cleanUp";
 import { rpcConfig } from "./rpc";
 import express, { Request, Response } from "express";
 import { syncAdmins } from "./vars/admins";
 import { unlockUnusedAccounts } from "./bot/cleanUp/accounts";
-import { hardCleanUpBotMessage } from "./utils/bot";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -104,6 +97,16 @@ log("Express server ready");
       .slice(0, 20);
 
     return res.status(200).json({ trendingTokens: trendingTokensList });
+  });
+
+  app.post("/syncTrending", async (req: Request, res: Response) => {
+    await syncToTrend();
+    return res.status(200).json({ toTrendTokens });
+  });
+
+  app.post("/syncAdvertisements", async (req: Request, res: Response) => {
+    await syncAdvertisements();
+    return res.status(200).json({ advertisements });
   });
 
   app.listen(PORT, () => {

@@ -2,30 +2,35 @@ import { CommandContext, Context } from "grammy";
 import { trend } from "./trend";
 import { advertise } from "./advertise";
 import { BOT_USERNAME } from "@/utils/env";
+import { errorHandler } from "@/utils/handlers";
 
 export async function startBot(ctx: CommandContext<Context>) {
-  const text = `Welcome to ${BOT_USERNAME}\\!
+  try {
+    const text = `Welcome to ${BOT_USERNAME}\\!
 
 /advertise \\- To buy an ad slot on our bot
 /trend \\- To trend your token`;
 
-  const { match } = ctx;
+    const { match } = ctx;
 
-  switch (match) {
-    case "trend": {
-      trend(ctx);
-      break;
+    switch (match) {
+      case "trend": {
+        trend(ctx);
+        break;
+      }
+      case "adBuyRequest": {
+        advertise(ctx);
+        break;
+      }
+      default: {
+        return await ctx.reply(text, {
+          // @ts-expect-error Type not found
+          disable_web_page_preview: true,
+          parse_mode: "MarkdownV2",
+        });
+      }
     }
-    case "adBuyRequest": {
-      advertise(ctx);
-      break;
-    }
-    default: {
-      return ctx.reply(text, {
-        // @ts-expect-error Type not found
-        disable_web_page_preview: true,
-        parse_mode: "MarkdownV2",
-      });
-    }
+  } catch (error) {
+    errorHandler(error);
   }
 }
