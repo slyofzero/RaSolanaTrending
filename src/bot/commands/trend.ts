@@ -154,6 +154,7 @@ export async function selectTrendingDuration(ctx: CommandContext<Context>) {
 }
 
 export function prepareTrendingState(ctx: CallbackQueryContext<Context>) {
+  // @ts-expect-error temp
   const chatId = ctx.chat?.id || "";
   const [slot, duration] = ctx.callbackQuery.data
     .replace("trendDuration-", "")

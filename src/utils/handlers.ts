@@ -1,8 +1,10 @@
 import { getNow } from "./time";
 
-export function log(message: string) {
+// eslint-disable-next-line
+export function log(message: any) {
+  const time = `[-----${getNow()}-----]`;
   // eslint-disable-next-line no-console
-  console.log(`[-----${getNow()}-----]`, message);
+  console.log(time, message);
 }
 
 export function stopScript(message: string, exitCode?: number) {
@@ -13,6 +15,5 @@ export function stopScript(message: string, exitCode?: number) {
 export function errorHandler(e: unknown) {
   const error = e as Error;
   log(`Error: ${error.message}`);
-  // eslint-disable-next-line
-  console.trace();
+  log(error.stack);
 }

@@ -84,6 +84,7 @@ export async function getUnlockedAccount(ctx: CallbackQueryContext<Context>) {
 }
 
 export async function preparePayment(ctx: CallbackQueryContext<Context>) {
+  // @ts-expect-error temp
   const chatId = ctx.chat?.id;
   const username = ctx.from.username;
   if (!chatId || !username)
