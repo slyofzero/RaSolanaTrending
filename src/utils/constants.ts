@@ -22,8 +22,10 @@ export const wssHeaders = {
 };
 
 export const trendPrices: { [K in 1 | 2 | 3]: { [key: number]: number } } =
-  JSON.parse(TRENDING_PRICES || "");
-export const adPrices: { [key: number]: number } = JSON.parse(AD_PRICES || "");
+  JSON.parse(TRENDING_PRICES || "[]");
+export const adPrices: { [key: number]: number } = JSON.parse(
+  AD_PRICES || "[]"
+);
 
 export const transactionValidTime = 25 * 60;
 export const chatActionInterval = 4000;

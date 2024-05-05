@@ -1,9 +1,8 @@
-import { PairsData, WSSPairData } from "@/types";
-import { TokenPoolData } from "@/types/terminalData";
-import { TrendingData, TrendingTokens } from "@/types/trending";
+import { PairData, PairsData, WSSPairData } from "@/types";
+import { TrendingTokens } from "@/types/trending";
 import { apiFetcher } from "@/utils/api";
-import { bannedTokens } from "@/utils/constants";
-import { COINGECKO_API_KEY, TOKEN_DATA_URL } from "@/utils/env";
+import { MCLimit } from "@/utils/constants";
+import { TOKEN_DATA_URL } from "@/utils/env";
 import { log } from "@/utils/handlers";
 import {
   previouslyTrendingTokens,
@@ -14,82 +13,54 @@ import {
 export async function processTrendingPairs(pairs: WSSPairData[]) {
   const newTopTrendingTokens: TrendingTokens = [];
 
-  for (const pair of pairs.slice(0, 30)) {
-    if (newTopTrendingTokens.length >= 20) break;
+  let mcLimit = MCLimit;
+  while (newTopTrendingTokens.length < 10 && mcLimit <= 10_000_000) {
+    for (const pair of pairs) {
+      // Only need 10 tokens at the top
+      if (newTopTrendingTokens.length >= 10) break;
 
-    try {
-      const { baseToken } = pair;
+      const { baseToken, marketCap } = pair;
+
+      if (marketCap > mcLimit) continue;
+
       const { address } = baseToken;
-
-      const pairData = await apiFetcher<TokenPoolData>(
-        `https://pro-api.coingecko.com/api/v3/onchain/networks/ton/tokens/${address}/pools`,
-        { "x-cg-pro-api-key": COINGECKO_API_KEY || "" }
+      const pairData = await apiFetcher<PairsData>(
+        `${TOKEN_DATA_URL}/${address}`
       );
+
+      if (!pairData) continue;
 
       const tokenAlreadyInTop15 = newTopTrendingTokens.some(
         ([token]) => token === address
       );
 
-      const firstPair = pairData.data.data?.at(0);
-      const tokenIsBanned = bannedTokens.includes(address);
-      if (!firstPair || tokenAlreadyInTop15 || tokenIsBanned) continue;
+      const firstPair = pairData.data.pairs.at(0);
+      if (!firstPair || tokenAlreadyInTop15) continue;
 
       newTopTrendingTokens.push([address, firstPair]);
-    } catch (error) {
-      const err = error as Error;
-      log(err.message);
-      continue;
     }
+
+    mcLimit *= 2;
   }
 
-  for (const tokenData of toTrendTokens) {
-    const { slot, token, socials } = tokenData;
-    try {
-      const alreadyTrendingRank = newTopTrendingTokens.findIndex(
-        ([storedToken]) => storedToken === token
-      );
+  for (const { slot, token } of toTrendTokens) {
+    const alreadyTrendingRank = newTopTrendingTokens.findIndex(
+      ([storedToken]) => storedToken === token
+    );
 
-      let slotRange = [1, 3];
-      if (slot === 2) slotRange = [4, 10];
-      else if (slot === 3) slotRange = [11, 20];
-
-      const [min, max] = slotRange;
-      const slotToTrend = Math.floor(Math.random() * (max - min + 1)) + min;
-
-      if (alreadyTrendingRank !== -1) {
-        if (slot < alreadyTrendingRank) {
-          const [tokenData] = newTopTrendingTokens.splice(
-            alreadyTrendingRank,
-            1
-          );
-          newTopTrendingTokens.splice(slotToTrend, 0, tokenData);
-        }
-        continue;
+    if (alreadyTrendingRank !== -1) {
+      if (slot < alreadyTrendingRank) {
+        const [tokenData] = newTopTrendingTokens.splice(alreadyTrendingRank, 1);
+        newTopTrendingTokens.splice(slot, 0, tokenData);
       }
-
-      const pairData = await apiFetcher<TokenPoolData>(
-        `https://pro-api.coingecko.com/api/v3/onchain/networks/ton/tokens/${token}/pools`,
-        { "x-cg-pro-api-key": COINGECKO_API_KEY || "" }
-      );
-
-      // const pairData = await apiFetcher<PairsData>(
-      //   `${TOKEN_DATA_URL}/${token}`
-      // );
-      const firstPair = pairData.data.data?.at(0);
-      if (!firstPair) {
-        log(`Pair not found for ${token}`);
-        continue;
-      }
-      const newTrendingPair: [string, TrendingData] = [
-        token,
-        { ...firstPair, socials },
-      ];
-      newTopTrendingTokens.splice(slotToTrend - 1, 0, newTrendingPair);
-    } catch (error) {
-      const err = error as Error;
-      log(err.message);
       continue;
     }
+
+    const pairData = await apiFetcher<PairsData>(`${TOKEN_DATA_URL}/${token}`);
+    const firstPair = pairData?.data.pairs.at(0);
+    if (!firstPair) continue;
+    const newTrendingPair: [string, PairData] = [token, firstPair];
+    newTopTrendingTokens.splice(slot - 1, 0, newTrendingPair);
   }
 
   setTopTrendingTokens(newTopTrendingTokens);

@@ -1,8 +1,7 @@
 import { PairData } from "./pairData";
 import { Timestamp } from "firebase-admin/firestore";
-import { TokenData } from "./terminalData";
 
-export interface TrendingData extends TokenData {
+export interface TrendingData extends PairData {
   socials?: string;
 }
 

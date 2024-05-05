@@ -1,8 +1,7 @@
-import { Address } from "@ton/ton";
 import { Bot } from "grammy";
 import { initiateBotCommands, initiateCallbackQueries } from "./bot";
 import { log } from "./utils/handlers";
-import { API_AUTH_KEY, BOT_TOKEN, DEX_URL, PORT } from "./utils/env";
+import { BOT_TOKEN, DEX_URL, PORT } from "./utils/env";
 import { WebSocket } from "ws";
 import { wssHeaders } from "./utils/constants";
 import { WSSPairData } from "./types";
@@ -16,6 +15,7 @@ import { rpcConfig } from "./rpc";
 import express, { Request, Response } from "express";
 import { syncAdmins } from "./vars/admins";
 import { unlockUnusedAccounts } from "./bot/cleanUp/accounts";
+import { checkNewTrending } from "./bot/checkNewTrending";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -71,6 +71,8 @@ log("Express server ready");
         await processTrendingPairs(pairs);
 
         updateTrendingMessage();
+        checkNewTrending();
+
         cleanUpExpired();
       }
     });
@@ -86,14 +88,14 @@ log("Express server ready");
   });
 
   app.get("/trending", (req: Request, res: Response) => {
-    if (req.headers.authorization !== API_AUTH_KEY) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
-    }
+    // if (req.headers.authorization !== API_AUTH_KEY) {
+    //   res.status(401).json({ message: "Unauthorized" });
+    //   return;
+    // }
 
     // eslint-disable-next-line
     const trendingTokensList = trendingTokens
-      .map(([token]) => Address.parse(token).toRawString())
+      .map(([token]) => token)
       .slice(0, 20);
 
     return res.status(200).json({ trendingTokens: trendingTokensList });

@@ -332,8 +332,8 @@ Address Payment Received at - \`${hardCleanUpBotMessage(sentTo)}\``;
             dexSResonse,
           ]);
 
-          const terminalPool = terminalData.data.data?.at(0);
-          const dexSPool = dexSData.data.pairs?.at(0);
+          const terminalPool = terminalData?.data.data?.at(0);
+          const dexSPool = dexSData?.data.pairs?.at(0);
 
           const name =
             terminalPool?.attributes.name.split("/").at(0) ||
