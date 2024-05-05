@@ -6,10 +6,7 @@ import { errorHandler } from "@/utils/handlers";
 
 export async function startBot(ctx: CommandContext<Context>) {
   try {
-    const text = `Welcome to ${BOT_USERNAME}\\!
-
-/advertise \\- To buy an ad slot on our bot
-/trend \\- To trend your token`;
+    const text = `Welcome to ${BOT_USERNAME}\\!`;
 
     const { match } = ctx;
 
