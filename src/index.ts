@@ -66,7 +66,7 @@ log("Express server ready");
       const { pairs } = data as { pairs: WSSPairData[] | undefined };
       const lastFetched = getSecondsElapsed(fetchedAt);
 
-      if (pairs && lastFetched > 60) {
+      if (pairs && lastFetched >= 50) {
         fetchedAt = getNowTimestamp();
         await processTrendingPairs(pairs);
 
@@ -92,13 +92,13 @@ log("Express server ready");
     //   res.status(401).json({ message: "Unauthorized" });
     //   return;
     // }
+    const trendingTokensAndPairs: { [key: string]: string } = {};
+    for (const [token, tokenData] of trendingTokens) {
+      const pair = tokenData.pairAddress;
+      trendingTokensAndPairs[token] = pair;
+    }
 
-    // eslint-disable-next-line
-    const trendingTokensList = trendingTokens
-      .map(([token]) => token)
-      .slice(0, 20);
-
-    return res.status(200).json({ trendingTokens: trendingTokensList });
+    return res.status(200).json({ trendingTokens: trendingTokensAndPairs });
   });
 
   app.post("/syncTrending", async (req: Request, res: Response) => {

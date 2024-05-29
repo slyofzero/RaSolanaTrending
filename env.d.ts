@@ -7,7 +7,7 @@ declare global {
       FIREBASE_PREFIX: string | undefined;
       DEX_URL: string | undefined;
       FIREBASE_KEY: string | undefined;
-      RPC_URL: string | undefined;
+      RPC_ENDPOINT: string | undefined;
       ENCRYPTION_KEY: string | undefined;
       TOKEN_DATA_URL: string | undefined;
       CHANNEL_ID: string | undefined;

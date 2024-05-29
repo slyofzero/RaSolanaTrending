@@ -60,6 +60,7 @@ export async function updateTrendingMessage() {
         disable_web_page_preview: true,
         reply_markup: keyboard,
       })
+      .then(() => log("Updated message"))
       .catch(async (e) => errorHandler(e));
   } catch (error) {
     errorHandler(error);

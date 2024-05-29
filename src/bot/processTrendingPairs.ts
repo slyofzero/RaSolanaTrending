@@ -48,10 +48,16 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
       ([storedToken]) => storedToken === token
     );
 
+    let slotRange = [1, 3];
+    if (slot === 2) slotRange = [4, 10];
+    else if (slot === 3) slotRange = [11, 20];
+
+    const [min, max] = slotRange;
+    const slotToTrend = Math.floor(Math.random() * (max - min + 1)) + min;
     if (alreadyTrendingRank !== -1) {
-      if (slot < alreadyTrendingRank) {
+      if (slotToTrend < alreadyTrendingRank) {
         const [tokenData] = newTopTrendingTokens.splice(alreadyTrendingRank, 1);
-        newTopTrendingTokens.splice(slot, 0, tokenData);
+        newTopTrendingTokens.splice(slotToTrend, 0, tokenData);
       }
       continue;
     }
@@ -60,7 +66,7 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
     const firstPair = pairData?.data.pairs.at(0);
     if (!firstPair) continue;
     const newTrendingPair: [string, PairData] = [token, firstPair];
-    newTopTrendingTokens.splice(slot - 1, 0, newTrendingPair);
+    newTopTrendingTokens.splice(slotToTrend - 1, 0, newTrendingPair);
   }
 
   setTopTrendingTokens(newTopTrendingTokens);

@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@orbs-network/ton-access": "^2.3.3",
+    "@solana/web3.js": "^1.91.8",
     "@ton/ton": "^13.11.1",
     "dotenv": "^16.3.1",
     "ethers": "~5.7.2",
@@ -41,6 +42,7 @@
     "moment": "^2.29.4",
     "nanoid": "^3.3.7",
     "ton-crypto": "^3.2.0",
+    "tweetnacl": "^1.0.3",
     "ws": "^8.16.0"
   }
 }
