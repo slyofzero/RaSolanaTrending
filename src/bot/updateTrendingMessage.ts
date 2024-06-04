@@ -1,6 +1,6 @@
 import { CHANNEL_ID, PINNED_MSG_ID } from "@/utils/env";
 import { errorHandler, log } from "@/utils/handlers";
-import { trendingTokens } from "@/vars/trending";
+import { toTrendTokens, trendingTokens } from "@/vars/trending";
 import { DEXSCREEN_URL } from "@/utils/constants";
 import { lastEditted, setLastEditted } from "@/vars/message";
 import { teleBot } from "..";
@@ -30,7 +30,12 @@ export async function updateTrendingMessage() {
         ({ type }) => type === "telegram"
       )?.url;
 
-      const url = telegramLink || `${DEXSCREEN_URL}/solana/${token}`;
+      const tokenSocials = toTrendTokens.find(
+        ({ token: storedToken }) => storedToken === token
+      )?.socials;
+
+      const url =
+        tokenSocials || telegramLink || `${DEXSCREEN_URL}/solana/${token}`;
       // const scanUrl = `https://t.me/ttfbotbot?start=${token}`;
       // const buyUrl = `https://t.me/magnum_trade_bot?start=PHryLEnW_snipe_${token}`;
 

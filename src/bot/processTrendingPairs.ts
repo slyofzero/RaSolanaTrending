@@ -76,4 +76,11 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
       `Trending tokens set, tokens trending now - ${newTopTrendingTokens.length}`
     );
   }
+  // const previousTokens = previouslyTrendingTokens.map(([token]) => token);
+
+  // for (const [token] of newTopTrendingTokens) {
+  //   if (previousTokens.includes(token)) {
+  //     apiFetcher()
+  //   }
+  // }
 }
