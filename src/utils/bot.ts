@@ -47,7 +47,7 @@ export function generateAdvertisementKeyboard() {
       const { text, link } = adSlot;
       keyboard = keyboard.url(text, link).row();
     } else {
-      const buttonLink = `https://t.me/InsectTonBuyBot?start=adBuyRequest`;
+      const buttonLink = `https://t.me/RaSolanaBuyBot?start=adBuyRequest`;
       keyboard = keyboard.url("⚡ Advertise here", buttonLink).row();
     }
   }
