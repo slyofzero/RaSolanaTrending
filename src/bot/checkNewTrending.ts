@@ -12,7 +12,7 @@ import {
 import moment from "moment";
 import { teleBot } from "..";
 import { errorHandler, log } from "@/utils/handlers";
-import { CHANNEL_ID, NETWORK_NAME } from "@/utils/env";
+import { CHANNEL_ID } from "@/utils/env";
 import { PairData, PairsData } from "@/types";
 import { apiFetcher } from "@/utils/api";
 import { DEXSCREEN_URL } from "@/utils/constants";
@@ -56,7 +56,7 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
 
 📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
 📌 Pair: [${shortenedPairAddress}](${pairLink})
-🔸 Chain: ${NETWORK_NAME} \\| ⚖️ Age: ${age}
+🔸 Chain: Solana \\| ⚖️ Age: ${age}
 
 💰 MC: \\$${`${formatM2Number(fdv)}`} \\| Liq: \\$${formatM2Number(
     liquidity.usd
