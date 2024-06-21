@@ -17,20 +17,40 @@ import { PairData, PairsData } from "@/types";
 import { apiFetcher } from "@/utils/api";
 import { DEXSCREEN_URL } from "@/utils/constants";
 
+moment.updateLocale("en", {
+  relativeTime: {
+    future: "in %s",
+    past: "%s ago",
+    s: "a few seconds",
+    ss: "%d seconds",
+    m: "1 M ago",
+    mm: "%d M ago",
+    h: "1 H ago",
+    hh: "%d H ago",
+    d: "1 day ago",
+    dd: "%d days ago",
+    M: "1 month ago",
+    MM: "%d months ago",
+    y: "1 year ago",
+    yy: "%d years ago",
+  },
+});
+
 async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   if (!CHANNEL_ID) {
     return log("Channel ID or PINNED_MSG_ID is undefined");
   }
 
-  const { baseToken, priceUsd, priceChange, txns, pairAddress, liquidity, volume, dexId, fdv, pairCreatedAt} = tokenData; // prettier-ignore
+  const { baseToken, priceUsd, priceChange, txns, pairAddress, liquidity, volume, fdv, pairCreatedAt} = tokenData; // prettier-ignore
   const { name, symbol, address: token } = baseToken;
   const { keyboard, scanLinksText } = generateTextFooter(token);
   const age = moment(pairCreatedAt).fromNow();
 
   const solScanLink = `https://solscan.io/token/${token}`;
   const pairLink = `https://solscan.io/account/${pairAddress}`;
-  const birdEyeLink = `https://birdeye.so/token/${token}?chain=solana`;
   const dexSLink = `https://dexscreener.com/solana/${token}`;
+  const photonLink = `https://photon-sol.tinyastro.io/en/lp/${pairAddress}`;
+  const dexTLink = `https://www.dextools.io/app/en/solana/pair-explorer/${pairAddress}`;
   const socials = [];
 
   for (const { label, url } of tokenData.info?.websites || []) {
@@ -56,7 +76,7 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
 
 📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
 📌 Pair: [${shortenedPairAddress}](${pairLink})
-🔸 Chain: Solana \\| ⚖️ Age: ${age}
+⚖️ Age: ${age}
 
 💰 MC: \\$${`${formatM2Number(fdv)}`} \\| Liq: \\$${formatM2Number(
     liquidity.usd
@@ -67,10 +87,9 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
 📈 Buys: ${formatM2Number(txns.h24.buys)} \\| 📉 Sells: ${formatM2Number(
     txns.h24.sells
   )}
-📊 [Birdeye](${birdEyeLink}) \\| [DexS](${dexSLink})
+📊 [Photon](${photonLink}) \\| [DexS](${dexSLink}) \\| [DexT](${dexTLink})
 
 💲 Price: \\$${cleanUpBotMessage(parseFloat(priceUsd))}
-🔗 DexID \\- \`${dexId}\`
 🌐 Socials \\- ${socialsText}
 
 🪙 Token \\- \`${token}\`

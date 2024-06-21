@@ -56,13 +56,10 @@ export function generateAdvertisementKeyboard() {
 }
 
 function generateScanLinks(token: string) {
-  const soulScanLink = `https://t.me/soul_scanner_bot?start=${token}`;
-  const soulSniperLink = `https://t.me/soul_sniper_bot?start=TruTrend_${token}`;
-  const magnum_url = `https://t.me/magnum_trade_bot?start=PHryLEnW_snipe_${token}`;
   const ttfbot_url = `https://t.me/ttfbotbot?start=${token}`;
+  const rickbot_url = `https://t.me/RickBurpBot?start=${token}`;
 
-  const scanLinksText = `[*👻 Soul Scan*](${soulScanLink}) \\| [*👻 Soul Sniper*](${soulSniperLink})
-  [*📡 TTF Bot*](${ttfbot_url}) \\| [*🎯 Magnum Bot*](${magnum_url})`;
+  const scanLinksText = `[*📡 TTF Bot*](${ttfbot_url}) \\| [*👴🏻 Rick Bot*](${rickbot_url})`;
 
   return scanLinksText;
 }
