@@ -16,6 +16,8 @@ import { CHANNEL_ID } from "@/utils/env";
 import { PairData, PairsData } from "@/types";
 import { apiFetcher } from "@/utils/api";
 import { DEXSCREEN_URL } from "@/utils/constants";
+import { tokenMCTracking } from "@/vars/priceTracking";
+import { sleep } from "@/utils/time";
 
 moment.updateLocale("en", {
   relativeTime: {
@@ -36,7 +38,11 @@ moment.updateLocale("en", {
   },
 });
 
-async function sendNewTrendingMsg(tokenData: PairData, index: number) {
+export async function sendNewTrendingMsg(
+  tokenData: PairData,
+  index: number,
+  growth?: number
+) {
   if (!CHANNEL_ID) {
     return log("Channel ID or PINNED_MSG_ID is undefined");
   }
@@ -72,6 +78,10 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   )}\\.\\.\\.${pairAddress.slice(pairAddress.length - 3, pairAddress.length)}`;
   const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
 
+  const growthText = growth
+    ? `\n\n💹 Growth since trending \\- ${growth}%`
+    : "";
+
   const message = `*${hardCleanedSymbol} trending at \\#${index + 1}*
 
 📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
@@ -80,7 +90,7 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
 
 💰 MC: \\$${`${formatM2Number(fdv)}`} \\| Liq: \\$${formatM2Number(
     liquidity.usd
-  )}
+  )} \\| 💲 Price: \\$${cleanUpBotMessage(parseFloat(priceUsd))}
 🚀 24h: ${formatM2Number(priceChange.h24)}% \\| V: \\$${formatM2Number(
     volume.h24
   )}
@@ -89,20 +99,39 @@ async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   )}
 📊 [Photon](${photonLink}) \\| [DexS](${dexSLink}) \\| [DexT](${dexTLink})
 
-💲 Price: \\$${cleanUpBotMessage(parseFloat(priceUsd))}
-🌐 Socials \\- ${socialsText}
+🌐 Socials \\- ${socialsText}${growthText}
 
 🪙 Token \\- \`${token}\`
 
 ${scanLinksText}`;
 
   try {
-    await teleBot.api.sendMessage(CHANNEL_ID, message, {
-      parse_mode: "MarkdownV2",
-      // @ts-expect-error Type not found
-      disable_web_page_preview: true,
-      reply_markup: keyboard,
-    });
+    if (growth) {
+      const { messageId } = tokenMCTracking[token];
+      await teleBot.api.editMessageText(CHANNEL_ID, messageId, message, {
+        parse_mode: "MarkdownV2",
+        // @ts-expect-error Type not found
+        disable_web_page_preview: true,
+        reply_markup: keyboard,
+      });
+    } else {
+      const channelMessage = await teleBot.api.sendMessage(
+        CHANNEL_ID,
+        message,
+        {
+          parse_mode: "MarkdownV2",
+          // @ts-expect-error Type not found
+          disable_web_page_preview: true,
+          reply_markup: keyboard,
+        }
+      );
+
+      tokenMCTracking[token] = {
+        messageId: channelMessage.message_id,
+        initialMC: fdv,
+        pastBenchmark: 0,
+      };
+    }
   } catch (e) {
     // eslint-disable-next-line
     console.log(message);
@@ -131,6 +160,8 @@ export async function checkNewTrending() {
     if (index < pastRank && index < 10)
       await sendNewTrendingMsg(tokenData, index);
   }
+
+  await sleep(10000);
 }
 
 export async function sendToTrendTokensMsg() {

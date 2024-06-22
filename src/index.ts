@@ -16,6 +16,7 @@ import express, { Request, Response } from "express";
 import { syncAdmins } from "./vars/admins";
 import { unlockUnusedAccounts } from "./bot/cleanUp/accounts";
 import { checkNewTrending } from "./bot/checkNewTrending";
+import { trackTokenMC } from "./bot/trackTokenMc";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -30,7 +31,7 @@ const app = express();
 log("Express server ready");
 
 (async function () {
-  await rpcConfig();
+  rpcConfig();
   teleBot.start();
   log("Telegram bot setup");
   initiateBotCommands();
@@ -71,7 +72,8 @@ log("Express server ready");
         await processTrendingPairs(pairs);
 
         updateTrendingMessage();
-        checkNewTrending();
+        await checkNewTrending();
+        trackTokenMC();
 
         cleanUpExpired();
       }
