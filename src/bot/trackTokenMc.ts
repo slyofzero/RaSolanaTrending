@@ -22,7 +22,6 @@ export async function trackTokenMC() {
       (((currentMC - initialMC) / initialMC) * 100).toFixed(2)
     );
     const growth = Math.floor(exactGrowth);
-    console.log(growth);
 
     if (growth > pastBenchmark) {
       tokenMCTracking[token] = {

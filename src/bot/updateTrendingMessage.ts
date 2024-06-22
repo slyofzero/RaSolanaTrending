@@ -33,7 +33,7 @@ export async function updateTrendingMessage() {
         ({ token: storedToken }) => storedToken === token
       )?.socials;
 
-      const photonLink = `photon-sol.tinyastro.io/en/r/@mint/${token}`;
+      const photonLink = `https://photon-sol.tinyastro.io/en/r/@mint/${token}`;
 
       const url = tokenSocials || telegramLink || photonLink;
       // const scanUrl = `https://t.me/ttfbotbot?start=${token}`;
