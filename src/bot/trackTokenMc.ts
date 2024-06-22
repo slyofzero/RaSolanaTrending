@@ -14,12 +14,15 @@ export async function trackTokenMC() {
     const { fdv: currentMC } = tokenData;
     const tokenTrackingData = tokenMCTracking[token];
 
+    if (!tokenTrackingData) continue;
+
     const { initialMC, pastBenchmark } = tokenTrackingData;
 
     const exactGrowth = Number(
-      ((currentMC - initialMC / initialMC) * 100).toFixed(2)
+      (((currentMC - initialMC) / initialMC) * 100).toFixed(2)
     );
     const growth = Math.floor(exactGrowth);
+    console.log(growth);
 
     if (growth > pastBenchmark) {
       tokenMCTracking[token] = {
