@@ -35,7 +35,9 @@ export async function updateTrendingMessage() {
       )?.socials;
 
       const url =
-        tokenSocials || telegramLink || `${DEXSCREEN_URL}/solana/${token}`;
+        tokenSocials ||
+        telegramLink ||
+        `photon-sol.tinyastro.io/en/r/@mint/${token}`;
       // const scanUrl = `https://t.me/ttfbotbot?start=${token}`;
       // const buyUrl = `https://t.me/magnum_trade_bot?start=PHryLEnW_snipe_${token}`;
 
