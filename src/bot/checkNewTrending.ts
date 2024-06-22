@@ -129,7 +129,7 @@ ${scanLinksText}`;
       tokenMCTracking[token] = {
         messageId: channelMessage.message_id,
         initialMC: fdv,
-        pastBenchmark: 0,
+        pastBenchmark: 30,
       };
     }
   } catch (e) {
