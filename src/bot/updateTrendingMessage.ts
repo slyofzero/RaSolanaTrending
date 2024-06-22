@@ -1,7 +1,6 @@
 import { CHANNEL_ID, PINNED_MSG_ID } from "@/utils/env";
 import { errorHandler, log } from "@/utils/handlers";
 import { toTrendTokens, trendingTokens } from "@/vars/trending";
-import { DEXSCREEN_URL } from "@/utils/constants";
 import { lastEditted, setLastEditted } from "@/vars/message";
 import { teleBot } from "..";
 import {
@@ -34,10 +33,9 @@ export async function updateTrendingMessage() {
         ({ token: storedToken }) => storedToken === token
       )?.socials;
 
-      const url =
-        tokenSocials ||
-        telegramLink ||
-        `photon-sol.tinyastro.io/en/r/@mint/${token}`;
+      const photonLink = `photon-sol.tinyastro.io/en/r/@mint/${token}`;
+
+      const url = tokenSocials || telegramLink || photonLink;
       // const scanUrl = `https://t.me/ttfbotbot?start=${token}`;
       // const buyUrl = `https://t.me/magnum_trade_bot?start=PHryLEnW_snipe_${token}`;
 
@@ -45,7 +43,7 @@ export async function updateTrendingMessage() {
       const cleanedTokenSymbol = hardCleanUpBotMessage(symbol);
       const formattedPriceChange = `[${cleanUpBotMessage(
         priceChangeh24
-      )}%](${DEXSCREEN_URL}/solana/${token})`;
+      )}%](${photonLink})`;
 
       let newLine = `${icon} [${cleanedTokenName} \\| ${cleanedTokenSymbol}](${url}) \\| ${formattedPriceChange}\n${
         index < 3 ? "\n" : ""
