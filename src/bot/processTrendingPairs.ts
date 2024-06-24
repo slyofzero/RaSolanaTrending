@@ -1,9 +1,9 @@
 import { PairData, PairsData, WSSPairData } from "@/types";
 import { TrendingTokens } from "@/types/trending";
-import { apiFetcher, apiPoster } from "@/utils/api";
+import { apiFetcher, syncTrendingBuyBot } from "@/utils/api";
 import { MCLimit } from "@/utils/constants";
-import { TOKEN_DATA_URL, TRENDING_BUY_BOT_API } from "@/utils/env";
-import { errorHandler, log } from "@/utils/handlers";
+import { TOKEN_DATA_URL } from "@/utils/env";
+import { log } from "@/utils/handlers";
 import {
   previouslyTrendingTokens,
   setTopTrendingTokens,
@@ -76,14 +76,11 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
       `Trending tokens set, tokens trending now - ${newTopTrendingTokens.length}`
     );
   }
-  const previousTokens = previouslyTrendingTokens.map(([token]) => token);
 
   for (const [token] of newTopTrendingTokens) {
-    if (!previousTokens.includes(token)) {
-      apiPoster(`${TRENDING_BUY_BOT_API}/syncTrending`).catch((e) =>
-        errorHandler(e)
-      );
-      log(`Sent sync request`);
+    if (!previouslyTrendingTokens.includes(token)) {
+      log(`${token} added to trending list`);
+      syncTrendingBuyBot();
       break;
     }
   }

@@ -1,8 +1,6 @@
 import { ethers } from "ethers";
 import { errorHandler, log } from "./handlers";
-import { referralCommisionFee, splitPaymentsWith } from "./constants";
-import { getDocument, updateDocumentById } from "@/firebase";
-import { StoredReferral } from "@/types";
+import { splitPaymentsWith } from "./constants";
 import nacl from "tweetnacl";
 import { solanaConnection } from "@/rpc";
 import web3, { PublicKey } from "@solana/web3.js";
@@ -78,62 +76,18 @@ export async function sendTransaction(
 
 export async function splitPayment(
   secretKey: string,
-  totalPaymentAmount: number,
-  referrer?: number
+  totalPaymentAmount: number
 ) {
   try {
-    const { dev, main, revenue } = splitPaymentsWith;
+    const { dev, main } = splitPaymentsWith;
 
     // ------------------------------ Calculating shares ------------------------------
     const devShare = Math.ceil(dev.share * totalPaymentAmount);
-    const shareLeft = totalPaymentAmount - devShare;
-
-    let referralAddress = "";
-    let referralShare = 0;
-
-    if (referrer) {
-      const referralData = (
-        await getDocument<StoredReferral>({
-          collectionName: "referral",
-          queries: [["referrer", "==", referrer]],
-        })
-      ).at(0);
-
-      if (referralData) {
-        if (referralData.walletAddress) {
-          referralAddress = referralData.walletAddress;
-          referralShare = Math.floor(shareLeft * referralCommisionFee);
-
-          const newFeesCollected =
-            (referralData.feesCollected || 0) + referralShare;
-
-          updateDocumentById<StoredReferral>({
-            id: referralData.id || "",
-            collectionName: "referral",
-            updates: { feesCollected: newFeesCollected },
-          });
-        }
-      }
-    }
-
-    const revenueShare = Math.floor(shareLeft * revenue.share);
-    const mainShare = shareLeft - (referralShare + revenueShare);
+    const mainShare = totalPaymentAmount - devShare;
 
     // ------------------------------ Txns ------------------------------
     const devTx = await sendTransaction(secretKey, devShare, dev.address);
     if (devTx) log(`Dev share ${devShare} sent ${devTx}`);
-
-    if (referralAddress) {
-      const refTx = await sendTransaction(
-        secretKey,
-        referralShare,
-        referralAddress
-      );
-      if (refTx) log(`Referral Share ${referralShare} sent ${refTx}`);
-    }
-
-    const revTx = await sendTransaction(secretKey, revenueShare, revenue.address); // prettier-ignore
-    if (revTx) log(`Revenue share ${revenueShare} sent ${revTx}`);
 
     const mainTx = await sendTransaction(secretKey, mainShare, main.address); // prettier-ignore
     if (mainTx) log(`Main share ${mainShare} sent ${mainTx}`);

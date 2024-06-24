@@ -1,4 +1,5 @@
 import { updateDocumentById } from "@/firebase";
+import { syncTrendingBuyBot } from "@/utils/api";
 import { transactionValidTime } from "@/utils/constants";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed } from "@/utils/time";
@@ -25,6 +26,8 @@ export async function cleanUpPendingToTrend() {
           id: id || "",
         });
         log(`Trend ${id} expired`);
+
+        syncTrendingBuyBot();
 
         await syncToTrend();
       }
