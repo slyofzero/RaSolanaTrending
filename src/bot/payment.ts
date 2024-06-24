@@ -4,11 +4,16 @@ import {
   getDocumentById,
   updateDocumentById,
 } from "@/firebase";
-import { StoredAdvertisement } from "@/types";
+import { StoredAdvertisement, StoredExtendTrend } from "@/types";
 import { StoredAccount } from "@/types/accounts";
 import { StoredToTrend } from "@/types/trending";
 import { cleanUpBotMessage } from "@/utils/bot";
-import { adPrices, transactionValidTime, trendPrices } from "@/utils/constants";
+import {
+  adPrices,
+  durationExtendFees,
+  transactionValidTime,
+  trendPrices,
+} from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
 import { BOT_USERNAME } from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
@@ -181,6 +186,226 @@ Address - \`${account}\``;
     );
 
     return false;
+  }
+}
+
+export async function extendTrendDuration(ctx: CallbackQueryContext<Context>) {
+  try {
+    ctx.deleteMessage();
+
+    const username = ctx.from?.username;
+    const duration = Number(
+      ctx.callbackQuery.data.replace("extendTrendDuration-", "")
+    ) as 3 | 6 | 12 | 24;
+
+    if (isNaN(duration)) return;
+
+    const trendBoughtByUser = (
+      await getDocument<StoredToTrend>({
+        collectionName: "to_trend",
+        queries: [
+          ["status", "==", "PAID"],
+          ["username", "==", username],
+        ],
+      })
+    ).at(0);
+    const trendOrder = trendBoughtByUser?.hash;
+
+    if (!trendOrder || !username) {
+      return ctx.reply("No trend order was found for your account.");
+    }
+
+    const hash = nanoid(10);
+    const account = await getUnlockedAccount();
+    const amount = durationExtendFees[duration];
+
+    let text = `You have selected to extend your trending purchase \`${trendOrder}\` by ${duration} hours.
+   
+The total cost - \`${roundUpToDecimalPlace(amount, 4)}\` SOL
+
+Send the bill amount to the below address within 20 minutes, starting from this message generation. Once paid, click on "I have paid" to verify payment. If 20 minutes have already passed then please restart using /trend. 
+
+Address - \`${account}\``;
+
+    text = text.replace(/\./g, "\\.").replace(/-/g, "\\-");
+    const keyboard = new InlineKeyboard().text(
+      "I have paid",
+      `extendTrendOrder-${hash}`
+    );
+
+    ctx.reply(text, { parse_mode: "MarkdownV2", reply_markup: keyboard });
+
+    const dataToAdd: StoredExtendTrend = {
+      sentTo: account,
+      amount,
+      duration,
+      hash,
+      status: "PENDING",
+      trendOrder,
+      username,
+      paidAt: Timestamp.now(),
+    };
+
+    addDocument<StoredExtendTrend>({
+      collectionName: "extend_trend",
+      data: dataToAdd,
+      id: hash,
+    });
+  } catch (error) {
+    errorHandler(error);
+    ctx.reply(
+      `An error occurred. Please don't follow with the payment and instead do /trend in the same way you used earlier.`
+    );
+  }
+}
+
+export async function confirmExtendTrendDurationPayment(
+  ctx: CallbackQueryContext<Context>
+) {
+  try {
+    const from = ctx.from;
+    const callbackData = ctx.callbackQuery.data;
+    const [, hash] = callbackData.split("-");
+    const collectionName = "extend_trend";
+
+    if (!from || !callbackData || !hash) {
+      return ctx.reply("Please click on the button again");
+    }
+
+    const confirmingMessage = await ctx.reply(
+      "Checking for payment receival, a confirmation message would be sent to you in a short while. Expected time - 60 seconds"
+    );
+
+    const trendingPayment = await getDocumentById<StoredExtendTrend>({
+      collectionName,
+      id: hash,
+    });
+
+    if (!trendingPayment) {
+      log(`Payment not found for hash ${hash}`);
+      return await ctx.reply(
+        `Your payment wasn't found. Please contact the admins and provide them the hash - ${hash}.`
+      );
+    }
+
+    const { amount, duration, paidAt, sentTo, trendOrder } = trendingPayment;
+    const timeSpent = getSecondsElapsed(paidAt.seconds);
+
+    if (timeSpent > transactionValidTime) {
+      log(`Transaction ${hash} has expired`);
+      return await ctx.reply(
+        `Your payment duration has expired. You were warned not to pay after 20 minutes of payment message generation. If you have already paid, contact the admins.`
+      );
+    }
+
+    const storedAccount = (
+      await getDocument<StoredAccount>({
+        queries: [["publicKey", "==", sentTo]],
+        collectionName: "accounts",
+      })
+    ).at(0);
+
+    if (!storedAccount) {
+      log(`Account for payment hash ${hash} not found`);
+      const text = `The account your payment was sent to wasn't found. Please contact the admins and provide them the hash - \`${hash}\`.`;
+      // teleBot.api
+      //   .sendMessage(LOGS_CHANNEL_ID || "", cleanUpBotMessage(text), {
+      //     parse_mode: "MarkdownV2",
+      //   })
+      //   .catch((e) => errorHandler(e));
+      return await ctx.reply(cleanUpBotMessage(text), {
+        parse_mode: "MarkdownV2",
+      });
+    }
+
+    const { secretKey: encryptedSecretKey } = storedAccount;
+    const secretKey = decrypt(encryptedSecretKey);
+    const account = web3.Keypair.fromSecretKey(
+      new Uint8Array(JSON.parse(secretKey))
+    );
+
+    attemptsCheck: for (const attempt_number of Array.from(Array(20).keys())) {
+      try {
+        log(
+          `Checking for subscription payment, Attempt - ${attempt_number + 1}`
+        );
+
+        // Checking if payment was made
+        const balance = await solanaConnection.getBalance(account.publicKey);
+
+        if (balance < amount) {
+          log(`Transaction amount doesn't match`);
+          await sleep(10000);
+          continue attemptsCheck;
+        }
+
+        const amountSol = (amount / LAMPORTS_PER_SOL).toFixed(3);
+
+        const logText = `${BOT_USERNAME} transaction ${hash} for ${collectionName} verified with payment of ${amountSol} SOL.`;
+        log(logText);
+        const currentTimestamp = Timestamp.now();
+
+        await updateDocumentById({
+          updates: {
+            status: "PAID",
+            paidAt: currentTimestamp,
+          },
+          collectionName,
+          id: hash,
+        });
+
+        const { expiresAt } = (await getDocumentById<StoredToTrend>({
+          collectionName: "to_trend",
+          id: trendOrder,
+        })) as StoredToTrend;
+
+        const extendedExpiresAt = expiresAt
+          ? new Timestamp(
+              expiresAt.seconds + duration * 60 * 60,
+              expiresAt.nanoseconds
+            )
+          : Timestamp.now();
+        await updateDocumentById<StoredToTrend>({
+          updates: { expiresAt: extendedExpiresAt, status: "PAID" },
+          collectionName: "to_trend",
+          id: trendOrder,
+        });
+
+        const confirmationText = `You have extended your trending order \`${trendOrder}\` by ${duration} hours.
+Payment received of - \`${roundUpToDecimalPlace(amountSol, 4)}\` SOL
+
+Transaction hash for your payment is \`${hash}\`. In case of any doubts please reach out to the admins of the bot for any query.`;
+
+        syncToTrend()
+          .then(() => {
+            ctx.reply(cleanUpBotMessage(confirmationText), {
+              parse_mode: "MarkdownV2",
+            });
+          })
+          .then(() => {
+            ctx.deleteMessage().catch((e) => errorHandler(e));
+            ctx
+              .deleteMessages([confirmingMessage.message_id])
+              .catch((e) => errorHandler(e));
+          })
+          .catch((e) => errorHandler(e));
+
+        // Splitting payment
+        splitPayment(secretKey, balance);
+
+        return true;
+      } catch (error) {
+        errorHandler(error);
+        await sleep(10000);
+      }
+    }
+
+    log(`Account for payment hash ${hash} not found`);
+    const failedText = `Your payment wasn't confirmed. Please contact the admins and provide your payment hash - \`${hash}\``;
+    ctx.reply(failedText).catch((e) => errorHandler(e));
+  } catch (error) {
+    errorHandler(error);
+    ctx.reply(`An error occurred, please try again`);
   }
 }
 

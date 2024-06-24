@@ -12,15 +12,71 @@ import {
 import { preparePayment } from "../payment";
 import { isValidUrl } from "@/utils/general";
 import { TerminalData } from "@/types/terminal";
-import { PairsData } from "@/types";
+import { PairsData, StoredToTrend } from "@/types";
 import { TOKEN_DATA_URL } from "@/utils/env";
 import { errorHandler } from "@/utils/handlers";
+import { getDocument } from "@/firebase";
+import moment from "moment";
 
-export async function trend(ctx: CommandContext<Context>) {
-  const { id: chatId } = ctx.chat;
+export async function trend(
+  ctx: CommandContext<Context> | CallbackQueryContext<Context>
+) {
+  const chatId = ctx.chat?.id;
+  const username = ctx.from?.username;
+  const callbackData = ctx.callbackQuery?.data;
+
+  if (!chatId) return ctx.reply("please do /trend again");
+
+  const trendBoughtByUser = (
+    await getDocument<StoredToTrend>({
+      collectionName: "to_trend",
+      queries: [
+        ["status", "==", "PAID"],
+        ["username", "==", username],
+      ],
+    })
+  ).at(0);
+
+  if (callbackData !== "newTrend" && trendBoughtByUser) {
+    const { token, expiresAt, duration, slot } = trendBoughtByUser;
+    const slots = slot === 1 ? "1 to 3" : "4 to 10";
+    const expiresIn = moment((expiresAt?.seconds || 0) * 1e3)
+      .fromNow()
+      .replace("ago", "")
+      .trim();
+
+    const keyboard = new InlineKeyboard()
+      .text("Extend trend duration", "extendTrend")
+      .text("Purchase new", "newTrend");
+
+    const text = `You already have a token trending\\.
+    
+Token \\- \`${token}\`
+Duration \\- ${duration} hours
+Slot \\- ${slots}
+Expires ${expiresIn}`;
+
+    ctx.reply(text, { parse_mode: "MarkdownV2", reply_markup: keyboard });
+    return;
+  }
+
   userState[chatId] = "toTrend";
   const text = `To trend a token, please provide the token's address in the next message`;
   ctx.reply(text).catch((e) => errorHandler(e));
+}
+
+export async function extendTrend(ctx: CallbackQueryContext<Context>) {
+  ctx.deleteMessage();
+
+  const text = "Select the duration you want to extend by -";
+  const keyboard = new InlineKeyboard()
+    .text("3 hours", "extendTrendDuration-3")
+    .text("6 hours", "extendTrendDuration-6")
+    .row()
+    .text("12 hours", "extendTrendDuration-12")
+    .text("24 hours", "extendTrendDuration-24");
+
+  ctx.reply(text, { reply_markup: keyboard });
 }
 
 export async function addTrendingSocial(ctx: CommandContext<Context>) {

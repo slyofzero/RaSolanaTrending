@@ -1,12 +1,19 @@
 import { CallbackQueryContext, CommandContext, Context } from "grammy";
 import {
   addTrendingSocial,
+  extendTrend,
   prepareTrendingState,
   selectTrendingDuration,
   setTrendingEmoji,
+  trend,
 } from "./commands/trend";
 import { userState } from "@/vars/state";
-import { confirmPayment, preparePayment } from "./payment";
+import {
+  confirmExtendTrendDurationPayment,
+  confirmPayment,
+  extendTrendDuration,
+  preparePayment,
+} from "./payment";
 import {
   advertiseLink,
   prepareAdvertisementState,
@@ -26,6 +33,11 @@ const steps: { [key: string]: any } = {
   adDuration: prepareAdvertisementState,
   adSlot: preparePayment,
   adPayment: confirmPayment,
+
+  extendTrend: extendTrend,
+  newTrend: trend,
+  extendTrendDuration: extendTrendDuration,
+  extendTrendOrder: confirmExtendTrendDurationPayment,
 };
 
 export async function executeStep(

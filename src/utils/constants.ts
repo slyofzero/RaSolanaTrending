@@ -34,14 +34,16 @@ export const splitPaymentsWith: {
   [key: string]: { address: string; share: number };
 } = {
   main: {
-    address: "7Q6VMNVaWpkSjJcg3J8TaeaHQPji1EP1LVX84wpZEaiY-",
+    address: "7Q6VMNVaWpkSjJcg3J8TaeaHQPji1EP1LVX84wpZEaiY",
     share: 0.95,
   },
   dev: {
-    address: "7Q6VMNVaWpkSjJcg3J8TaeaHQPji1EP1LVX84wpZEaiY-",
+    address: "7Q6VMNVaWpkSjJcg3J8TaeaHQPji1EP1LVX84wpZEaiY",
     share: 0.05,
   },
 };
+
+export const durationExtendFees = { 3: 1.5, 6: 3, 12: 5, 24: 9 };
 
 export const urlRegex =
   /^(?:https?|ftp):\/\/(?:www\.)?[\w-]+\.[a-z]{2,}(?:\/[\w-]*)*\/?(?:\?[^#\s]*)?$/;

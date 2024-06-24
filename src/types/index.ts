@@ -6,3 +6,4 @@ export * from "./trending";
 export * from "./advertisement";
 export * from "./referral";
 export * from "./admins";
+export * from "./extendTrend";
