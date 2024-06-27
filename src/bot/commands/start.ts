@@ -1,6 +1,6 @@
 import { CommandContext, Context } from "grammy";
-// import { trend } from "./trend";
-// import { advertise } from "./advertise";
+import { trend } from "./trend";
+import { advertise } from "./advertise";
 import { BOT_USERNAME } from "@/utils/env";
 import { errorHandler } from "@/utils/handlers";
 
@@ -11,14 +11,14 @@ export async function startBot(ctx: CommandContext<Context>) {
     const { match } = ctx;
 
     switch (match) {
-      // case "trend": {
-      //   trend(ctx);
-      //   break;
-      // }
-      // case "adBuyRequest": {
-      //   advertise(ctx);
-      //   break;
-      // }
+      case "trend": {
+        trend(ctx);
+        break;
+      }
+      case "adBuyRequest": {
+        advertise(ctx);
+        break;
+      }
       default: {
         return await ctx.reply(text, {
           // @ts-expect-error Type not found

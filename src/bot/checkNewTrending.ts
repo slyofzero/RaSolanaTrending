@@ -145,7 +145,7 @@ export async function checkNewTrending() {
   // Checking for new trending tokens
   for (const [index, [token, tokenData]] of trendingTokens.entries()) {
     const wasPreviouslyTrending = previouslyTrendingTokens.includes(token);
-    if (wasPreviouslyTrending || index >= 10) continue;
+    if (wasPreviouslyTrending) continue;
 
     await sendNewTrendingMsg(tokenData, index);
   }
@@ -157,8 +157,7 @@ export async function checkNewTrending() {
     const pastRank = previouslyTrendingTokens.findIndex(
       (storedToken) => storedToken === token
     );
-    if (index < pastRank && index < 10)
-      await sendNewTrendingMsg(tokenData, index);
+    if (index < pastRank) await sendNewTrendingMsg(tokenData, index);
   }
 
   await sleep(10000);

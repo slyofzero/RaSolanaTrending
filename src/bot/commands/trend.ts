@@ -197,14 +197,14 @@ export async function selectTrendingDuration(ctx: CommandContext<Context>) {
   }
 
   keyboard = keyboard.toTransposed();
-  //   keyboard = keyboard.row().text("⬇️ 11 - 20 ⬇️").row();
+  keyboard = keyboard.row().text("⬇️ 11 - 15 ⬇️").row();
 
-  //   if (tiersFilled[3] !== 10) {
-  //     for (const [duration, price] of Object.entries(trendPrices[3])) {
-  //       const slotText = `${duration} hours - ${price} SOL`;
-  //       keyboard = keyboard.text(slotText, `trendDuration-3-${duration}`).row();
-  //     }
-  //   }
+  if (tiersFilled[3] !== 10) {
+    for (const [duration, price] of Object.entries(trendPrices[3])) {
+      const slotText = `${duration} hours - ${price} SOL`;
+      keyboard = keyboard.text(slotText, `trendDuration-3-${duration}`).row();
+    }
+  }
 
   ctx.reply(text, { reply_markup: keyboard });
 }

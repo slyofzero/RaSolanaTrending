@@ -79,18 +79,26 @@ export async function splitPayment(
   totalPaymentAmount: number
 ) {
   try {
-    const { dev, main } = splitPaymentsWith;
+    const { main } = splitPaymentsWith;
 
-    // ------------------------------ Calculating shares ------------------------------
-    const devShare = Math.ceil(dev.share * totalPaymentAmount);
-    const mainShare = totalPaymentAmount - devShare;
+    // // ------------------------------ Calculating shares ------------------------------
+    // const devShare = Math.ceil(dev.share * totalPaymentAmount);
+    // const mainShare = totalPaymentAmount - devShare;
 
-    // ------------------------------ Txns ------------------------------
-    const devTx = await sendTransaction(secretKey, devShare, dev.address);
-    if (devTx) log(`Dev share ${devShare} sent ${devTx}`);
+    // // ------------------------------ Txns ------------------------------
+    // const devTx = await sendTransaction(
+    //   secretKey,
+    //   totalPaymentAmount,
+    //   main.address
+    // );
+    // if (devTx) log(`Dev share ${devShare} sent ${devTx}`);
 
-    const mainTx = await sendTransaction(secretKey, mainShare, main.address); // prettier-ignore
-    if (mainTx) log(`Main share ${mainShare} sent ${mainTx}`);
+    const mainTx = await sendTransaction(
+      secretKey,
+      totalPaymentAmount,
+      main.address
+    ); // prettier-ignore
+    if (mainTx) log(`Main share ${totalPaymentAmount} sent ${mainTx}`);
   } catch (error) {
     errorHandler(error);
   }

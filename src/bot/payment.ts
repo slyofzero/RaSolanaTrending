@@ -120,7 +120,7 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
       ? "1-3"
       : slot === 2
       ? "3-10"
-      : "11-20";
+      : "11-15";
 
     const paymentCategory = isTrendingPayment ? "trendingPayment" : "adPayment";
     let text = `You have selected ${slotText} slots ${displaySlot} for ${duration} hours.

@@ -15,7 +15,23 @@ export async function updateTrendingMessage() {
   }
 
   let trendingTokensMessage = `*SOL TRENDING* \\| [*Disclaimer*](https://t.me/c/2125443386/2)\n\n`;
-  const icons = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+  const icons = [
+    "🥇",
+    "🥈",
+    "🥉",
+    "4️⃣",
+    "5️⃣",
+    "6️⃣",
+    "7️⃣",
+    "8️⃣",
+    "9️⃣",
+    "🔟",
+    "1️⃣1️⃣",
+    "1️⃣2️⃣",
+    "1️⃣3️⃣",
+    "1️⃣4️⃣",
+    "1️⃣5️⃣",
+  ];
 
   try {
     // ------------------------------ Trending Message ------------------------------
@@ -45,9 +61,9 @@ export async function updateTrendingMessage() {
         priceChangeh24
       )}%](${photonLink})`;
 
-      let newLine = `${icon} [${cleanedTokenName} \\| ${cleanedTokenSymbol}](${url}) \\| ${formattedPriceChange}\n${
-        index < 3 ? "\n" : ""
-      }`;
+      const indentation = index < 3 || index === 9 ? "\n" : "";
+
+      let newLine = `${icon} [${cleanedTokenName} \\| ${cleanedTokenSymbol}](${url}) \\| ${formattedPriceChange}\n${indentation}`;
       newLine = newLine.trimStart();
       trendingTokensMessage += newLine;
     }

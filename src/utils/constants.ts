@@ -35,11 +35,7 @@ export const splitPaymentsWith: {
 } = {
   main: {
     address: "7Q6VMNVaWpkSjJcg3J8TaeaHQPji1EP1LVX84wpZEaiY",
-    share: 0.95,
-  },
-  dev: {
-    address: "7Q6VMNVaWpkSjJcg3J8TaeaHQPji1EP1LVX84wpZEaiY",
-    share: 0.05,
+    share: 1,
   },
 };
 
