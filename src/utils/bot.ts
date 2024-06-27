@@ -34,22 +34,15 @@ export function hardCleanUpBotMessage(text: any) {
 
 export function generateAdvertisementKeyboard() {
   let keyboard = new InlineKeyboard();
-  const showSecondSlot = advertisements.some(({ slot }) => slot === 2);
 
-  for (const index of Array.from(Array(2).keys())) {
-    if (index === 1 && !showSecondSlot) break;
+  const adSlot = advertisements.at(0);
 
-    const adSlot = advertisements.find(
-      ({ slot }) => Number(slot) === index + 1
-    );
-
-    if (adSlot) {
-      const { text, link } = adSlot;
-      keyboard = keyboard.url(text, link).row();
-    } else {
-      const buttonLink = `https://t.me/RaSolanaTrendingBot?start=adBuyRequest`;
-      keyboard = keyboard.url("⚡ Advertise here", buttonLink).row();
-    }
+  if (adSlot) {
+    const { text, link } = adSlot;
+    keyboard = keyboard.url(text, link).row();
+  } else {
+    const buttonLink = `https://t.me/RaSolanaTrendingBot?start=adBuyRequest`;
+    keyboard = keyboard.url("⚡ Advertise here", buttonLink).row();
   }
 
   return keyboard;

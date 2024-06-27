@@ -55,12 +55,21 @@ export async function advertiseLink(ctx: CommandContext<Context>) {
   }
 }
 
-export async function selectAdDuration(ctx: CommandContext<Context>) {
+export async function selectAdDuration(
+  ctx: CommandContext<Context> | CallbackQueryContext<Context>
+) {
   try {
-    const { id: chatId } = ctx.chat;
+    const chatId = ctx.chat?.id;
     const link = ctx.message?.text;
 
-    if (!link || !isValidUrl(link)) {
+    if (!chatId) return ctx.reply("Please do /trend again");
+
+    const { link: storedLink } = advertisementState[chatId];
+
+    const data = ctx.callbackQuery?.data;
+    if (data?.split("-").at(-1) === "return") ctx.deleteMessage();
+
+    if (!storedLink && (!link || !isValidUrl(link || ""))) {
       return await ctx.reply("Please enter a proper URL");
     }
 

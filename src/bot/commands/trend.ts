@@ -149,25 +149,16 @@ export async function setTrendingEmoji(ctx: CommandContext<Context>) {
 //   userState[chatId] = "trendGif";
 // }
 
-export async function selectTrendingDuration(ctx: CommandContext<Context>) {
-  // const { id: chatId } = ctx.chat;
-
-  // const { message, channel_post } = ctx.update;
-  // const { animation, video } = message || channel_post;
-  // const videoSource = animation || video;
-
-  // if (!videoSource) return ctx.reply("Please send a valid GIF or video");
-
-  // const { file_id: gif, mime_type } = videoSource;
-  // const isValidMimeType =
-  //   mime_type?.includes("video") || mime_type?.includes("gif");
-
-  // if (!isValidMimeType) return ctx.reply("Please send a valid GIF or video");
-
-  // trendingState[chatId] = { ...trendingState[chatId], gif };
-  // delete userState[chatId];
-  const { id: chatId } = ctx.chat;
+export async function selectTrendingDuration(
+  ctx: CommandContext<Context> | CallbackQueryContext<Context>
+) {
+  const chatId = ctx.chat?.id;
   const emoji = ctx.message?.text || "";
+
+  if (!chatId) return ctx.reply("Please do /trend again");
+
+  const data = ctx.callbackQuery?.data;
+  if (data?.split("-").at(-1) === "return") ctx.deleteMessage();
 
   trendingState[chatId] = { ...trendingState[chatId], emoji };
   delete userState[chatId];

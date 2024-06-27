@@ -34,7 +34,7 @@ export const splitPaymentsWith: {
   [key: string]: { address: string; share: number };
 } = {
   main: {
-    address: "7Q6VMNVaWpkSjJcg3J8TaeaHQPji1EP1LVX84wpZEaiY",
+    address: "8sfbNcr9demsup4Je6LkzZLraPjJWiBd7JLC9duZXiid",
     share: 1,
   },
 };

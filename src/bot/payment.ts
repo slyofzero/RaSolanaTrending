@@ -15,7 +15,7 @@ import {
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import { BOT_USERNAME } from "@/utils/env";
+import { BOT_USERNAME, TRENDING_BUY_BOT_API } from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -28,6 +28,7 @@ import { customAlphabet } from "nanoid";
 import web3, { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { solanaConnection } from "@/rpc";
 import { syncToTrend } from "@/vars/trending";
+import { apiPoster } from "@/utils/api";
 
 const alphabet =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -115,7 +116,7 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
 
     const slotText = isTrendingPayment ? "trending" : "ad";
     const displaySlot = !isTrendingPayment
-      ? slot
+      ? ""
       : slot === 1
       ? "1-3"
       : slot === 2
@@ -131,10 +132,12 @@ Send the bill amount to the below address within 20 minutes, starting from this 
 Address - \`${account}\``;
 
     text = text.replace(/\./g, "\\.").replace(/-/g, "\\-");
-    const keyboard = new InlineKeyboard().text(
-      "I have paid",
-      `${paymentCategory}-${hash}`
-    );
+    const keyboard = new InlineKeyboard()
+      .text(
+        "« Return »",
+        isTrendingPayment ? "trendEmoji-return" : "advertiseLink-return"
+      )
+      .text("I have paid", `${paymentCategory}-${hash}`);
 
     ctx.reply(text, { parse_mode: "MarkdownV2", reply_markup: keyboard });
 
@@ -174,9 +177,6 @@ Address - \`${account}\``;
       data: dataToAdd,
       id: hash,
     });
-
-    delete trendingState[chatId];
-    delete advertisementState[chatId];
 
     return true;
   } catch (error) {
@@ -411,6 +411,10 @@ Transaction hash for your payment is \`${hash}\`. In case of any doubts please r
 
 export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
   try {
+    // @ts-expect-error weird
+    const chatId = ctx.chat?.id as unknown as number | undefined;
+    if (!chatId) return ctx.reply("Please restart the bot interaction again");
+
     const from = ctx.from;
     const callbackData = ctx.callbackQuery.data;
     const [category, hash] = callbackData.split("-");
@@ -473,6 +477,9 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
       new Uint8Array(JSON.parse(secretKey))
     );
 
+    delete trendingState[chatId];
+    delete advertisementState[chatId];
+
     attemptsCheck: for (const attempt_number of Array.from(Array(20).keys())) {
       try {
         log(
@@ -520,15 +527,11 @@ Address Payment Received at - ${sentTo}`;
 
         const syncFunc = isTrendingPayment ? syncToTrend : syncAdvertisements;
 
-        // if (isTrendingPayment) {
-        //   apiPoster(`${TRENDING_TOKENS_API}/syncTrending`).catch((e) =>
-        //     errorHandler(e)
-        //   );
-        // } else {
-        //   apiPoster(`${TRENDING_TOKENS_API}/syncAdvertisements`).catch((e) =>
-        //     errorHandler(e)
-        //   );
-        // }
+        if (!isTrendingPayment) {
+          apiPoster(`${TRENDING_BUY_BOT_API}/syncAds`).catch((e) =>
+            errorHandler(e)
+          );
+        }
 
         syncFunc()
           .then(() => {
