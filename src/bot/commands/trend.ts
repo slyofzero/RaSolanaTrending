@@ -1,5 +1,4 @@
 import { apiFetcher } from "@/utils/api";
-import { trendPrices } from "@/utils/constants";
 import { isValidSolAddress } from "@/utils/web3";
 import { trendingState, userState } from "@/vars/state";
 import { toTrendTokens } from "@/vars/trending";
@@ -13,10 +12,11 @@ import { preparePayment } from "../payment";
 import { isValidUrl } from "@/utils/general";
 import { TerminalData } from "@/types/terminal";
 import { PairsData, StoredToTrend } from "@/types";
-import { TOKEN_DATA_URL } from "@/utils/env";
+import { TOKEN_DATA_URL, TRENDING_PRICES } from "@/utils/env";
 import { errorHandler } from "@/utils/handlers";
 import { getDocument } from "@/firebase";
 import moment from "moment";
+import { trendPrices } from "@/utils/constants";
 
 export async function trend(
   ctx: CommandContext<Context> | CallbackQueryContext<Context>
@@ -149,7 +149,7 @@ export async function setTrendingEmoji(ctx: CommandContext<Context>) {
 //   userState[chatId] = "trendGif";
 // }
 
-export async function selectTrendingDuration(
+export async function selectTrendingSlot(
   ctx: CommandContext<Context> | CallbackQueryContext<Context>
 ) {
   const chatId = ctx.chat?.id;
@@ -163,38 +163,49 @@ export async function selectTrendingDuration(
   trendingState[chatId] = { ...trendingState[chatId], emoji };
   delete userState[chatId];
 
-  const text = "Select the duration you want your token to trend for.";
+  const text =
+    "❕ Select open slot or click to see the nearest potential availability time:";
+  const keyboard = new InlineKeyboard()
+    .text("🔴 Top 3 gurantee", "trendSlot-1")
+    .text("🔴 Top 8 gurantee", "trendSlot-2")
+    .row()
+    .text("🔴 Any position", "trendSlot-3");
+
+  ctx.reply(text, { reply_markup: keyboard });
+}
+
+export async function selectTrendingDuration(
+  ctx: CommandContext<Context> | CallbackQueryContext<Context>
+) {
+  const chatId = ctx.chat?.id;
+  const slot = Number(ctx.callbackQuery?.data.at(-1)) as 1 | 2 | 3;
+
+  if (isNaN(slot)) return ctx.reply("Please click on the button again");
+  else if (!chatId) return ctx.reply("Please do /trend again");
+  else if (!TRENDING_PRICES) return ctx.reply("An error occurred");
+
+  trendingState[chatId] = { ...trendingState[chatId], slot };
+  delete userState[chatId];
+
+  ctx.deleteMessage();
+
+  const text = "❔ Select the duration you want your token to trend for: ";
   let keyboard = new InlineKeyboard();
 
-  const tiersFilled = { 1: 0, 2: 0, 3: 0 };
-  for (const token of toTrendTokens) {
-    tiersFilled[token.slot] += 1;
-  }
+  const durationPrices = trendPrices[slot];
+  const discounts = { 3: 0, 8: 15, 24: 30 };
 
-  if (tiersFilled[1] !== 3) {
-    keyboard = keyboard.text("⬇️ Top 3 ⬇️");
-    for (const [duration, price] of Object.entries(trendPrices[1])) {
-      const slotText = `${duration} hours - ${price} SOL`;
-      keyboard = keyboard.text(slotText, `trendDuration-1-${duration}`);
-    }
-  }
+  for (const [index, [duration, price]] of Object.entries(
+    durationPrices
+  ).entries()) {
+    const discount = discounts[Number(duration) as 3 | 8 | 24];
+    const discountText = discount ? `(-${discount}%)` : "";
+    keyboard = keyboard.text(
+      `${duration} hours | ${price} SOL ${discountText}`,
+      `trendDuration-${duration}`
+    );
 
-  if (tiersFilled[2] !== 7) {
-    keyboard = keyboard.row().text("⬇️ 3 - 10 ⬇️");
-    for (const [duration, price] of Object.entries(trendPrices[2])) {
-      const slotText = `${duration} hours - ${price} SOL`;
-      keyboard = keyboard.text(slotText, `trendDuration-2-${duration}`);
-    }
-  }
-
-  keyboard = keyboard.toTransposed();
-  keyboard = keyboard.row().text("⬇️ 11 - 15 ⬇️").row();
-
-  if (tiersFilled[3] !== 10) {
-    for (const [duration, price] of Object.entries(trendPrices[3])) {
-      const slotText = `${duration} hours - ${price} SOL`;
-      keyboard = keyboard.text(slotText, `trendDuration-3-${duration}`).row();
-    }
+    if (index % 2 !== 0) keyboard = keyboard.row();
   }
 
   ctx.reply(text, { reply_markup: keyboard });
@@ -202,12 +213,11 @@ export async function selectTrendingDuration(
 
 export function prepareTrendingState(ctx: CallbackQueryContext<Context>) {
   // @ts-expect-error temp
-  const chatId = ctx.chat?.id || "";
-  const [slot, duration] = ctx.callbackQuery.data
-    .replace("trendDuration-", "")
-    .split("-")
-    .map((item) => Number(item));
+  const chatId = ctx.chat?.id;
+  const duration = Number(ctx.callbackQuery?.data.at(-1));
 
-  trendingState[chatId] = { ...trendingState[chatId], slot, duration };
+  if (isNaN(duration)) return ctx.reply("Please click on the button again");
+
+  trendingState[chatId] = { ...trendingState[chatId], duration };
   preparePayment(ctx);
 }

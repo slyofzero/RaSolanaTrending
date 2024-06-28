@@ -79,17 +79,14 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
 
   const isTrendingPayment = Boolean(trendingState[chatId]);
   const commandToRedo = isTrendingPayment ? `/trend` : `/advertise`;
-  const callbackReplace = isTrendingPayment ? `trendDuration` : `adDuration`;
 
   try {
     ctx.deleteMessage();
-    const slot = Number(
-      ctx.callbackQuery.data.replace(`${callbackReplace}-`, "").at(0)
-    );
     const account = await getUnlockedAccount();
     const hash = nanoid(10);
 
-    const { duration } = trendingState[chatId] || advertisementState[chatId];
+    const { duration, slot } =
+      trendingState[chatId] || advertisementState[chatId];
 
     if (!duration || !slot)
       return ctx.reply(`Please do ${commandToRedo} again`);
@@ -120,8 +117,8 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
       : slot === 1
       ? "1-3"
       : slot === 2
-      ? "3-10"
-      : "11-15";
+      ? "3-8"
+      : "1-15";
 
     const paymentCategory = isTrendingPayment ? "trendingPayment" : "adPayment";
     let text = `You have selected ${slotText} slots ${displaySlot} for ${duration} hours.
