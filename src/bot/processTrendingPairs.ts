@@ -49,8 +49,8 @@ export async function processTrendingPairs(pairs: WSSPairData[]) {
     );
 
     let slotRange = [1, 3];
-    if (slot === 2) slotRange = [4, 10];
-    else if (slot === 3) slotRange = [11, 15];
+    if (slot === 2) slotRange = [1, 8];
+    else if (slot === 3) slotRange = [1, 15];
 
     const [min, max] = slotRange;
     const slotToTrend = Math.floor(Math.random() * (max - min + 1)) + min;
