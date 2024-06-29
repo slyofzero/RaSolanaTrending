@@ -434,7 +434,8 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
     if (!trendingPayment) {
       log(`Payment not found for hash ${hash}`);
       return await ctx.reply(
-        `Your payment wasn't found. Please contact the admins and provide them the hash - ${hash}.`
+        `Your payment wasn't found\\. Please contact the admins and provide them the hash - ${hash}\\.`,
+        { parse_mode: "MarkdownV2" }
       );
     }
 
