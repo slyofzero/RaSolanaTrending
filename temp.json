@@ -1,0 +1,65 @@
+{
+  "blockTime": 1719721752,
+  "meta": {
+    "computeUnitsConsumed": 450,
+    "err": null,
+    "fee": 15000,
+    "innerInstructions": [],
+    "loadedAddresses": { "readonly": [], "writable": [] },
+    "logMessages": [
+      "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+      "Program ComputeBudget111111111111111111111111111111 success",
+      "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+      "Program ComputeBudget111111111111111111111111111111 success",
+      "Program 11111111111111111111111111111111 invoke [1]",
+      "Program 11111111111111111111111111111111 success"
+    ],
+    "postBalances": [964257282, 50000000, 1, 1],
+    "postTokenBalances": [],
+    "preBalances": [1014272282, 0, 1, 1],
+    "preTokenBalances": [],
+    "rewards": [],
+    "status": { "Ok": null }
+  },
+  "slot": 274810572,
+  "transaction": {
+    "message": {
+      "header": {
+        "numReadonlySignedAccounts": 0,
+        "numReadonlyUnsignedAccounts": 2,
+        "numRequiredSignatures": 1
+      },
+      "accountKeys": [
+        "ELMXLPCtKjDVSTgNXdHBM7kHhC9yUzxBZYpmGfLsaGVC",
+        "7yvA4G3f8CdfzZnyZCiQaxapU8E1wrs3SDGUgdqPmXMS",
+        "11111111111111111111111111111111",
+        "ComputeBudget111111111111111111111111111111"
+      ],
+      "recentBlockhash": "G7VQYLwaJ8TWDBowB9uvXzxTHDfKrei9uvjuteQoeLjH",
+      "instructions": [
+        {
+          "accounts": [],
+          "data": "3DVGviTXKAPH",
+          "programIdIndex": 3,
+          "stackHeight": null
+        },
+        {
+          "accounts": [],
+          "data": "LKoyXd",
+          "programIdIndex": 3,
+          "stackHeight": null
+        },
+        {
+          "accounts": [0, 1],
+          "data": "3Bxs4NRZ15a54oAf",
+          "programIdIndex": 2,
+          "stackHeight": null
+        }
+      ],
+      "indexToProgramIds": {}
+    },
+    "signatures": [
+      "283vtU7DoY5firq4uYDZMAnJg9NNi2K6fkyvNhdPj2Qw3ZW1g5CFZ5GxHDVmAQiqq1SWoB5rTz9SVnsvmPXo4EMS"
+    ]
+  }
+}

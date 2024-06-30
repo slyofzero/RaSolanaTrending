@@ -3,7 +3,7 @@ import { errorHandler, log } from "./handlers";
 import { splitPaymentsWith } from "./constants";
 import nacl from "tweetnacl";
 import { solanaConnection } from "@/rpc";
-import web3, { PublicKey } from "@solana/web3.js";
+import web3, { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
 export function isValidSolAddress(address: string) {
   try {
@@ -31,24 +31,18 @@ export function generateAccount() {
 export async function sendTransaction(
   secretKey: string,
   amount: number,
-  to?: string
+  to: string
 ) {
-  let attempts = 0;
-
   try {
-    if (!to) {
-      return false;
-    }
-
-    attempts += 1;
+    const secretKeyArray = new Uint8Array(JSON.parse(secretKey));
+    const account = web3.Keypair.fromSecretKey(secretKeyArray);
+    const toPubkey = new PublicKey(to);
 
     const { lamportsPerSignature } = (
       await solanaConnection.getRecentBlockhash("confirmed")
     ).feeCalculator;
 
-    const secretKeyArray = new Uint8Array(JSON.parse(secretKey));
-    const account = web3.Keypair.fromSecretKey(secretKeyArray);
-    const toPubkey = new PublicKey(to);
+    log(`Sending ${to} ${parseFloat(String(amount / LAMPORTS_PER_SOL))}`);
 
     const transaction = new web3.Transaction().add(
       web3.SystemProgram.transfer({
@@ -63,14 +57,14 @@ export async function sendTransaction(
       transaction,
       [account]
     );
+
+    log(`Fees of ${amount} lamports sent to account ${to}`);
+
     return signature;
   } catch (error) {
+    const err = error as Error;
+    console.log(err.message);
     log(`No transaction for ${amount} to ${to}`);
-    errorHandler(error);
-
-    if (attempts < 1) {
-      sendTransaction(secretKey, amount, to);
-    }
   }
 }
 
