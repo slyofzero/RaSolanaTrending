@@ -30,7 +30,7 @@ export async function trackTokenMC() {
       };
 
       try {
-        await sendNewTrendingMsg(tokenData, index, growth);
+        await sendNewTrendingMsg(tokenData, index);
       } catch (e) {
         // eslint-disable-next-line
         // console.log(message);

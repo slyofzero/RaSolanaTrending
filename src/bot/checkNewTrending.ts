@@ -1,9 +1,5 @@
-import {
-  cleanUpBotMessage,
-  generateTextFooter,
-  hardCleanUpBotMessage,
-} from "@/utils/bot";
-import { formatM2Number, toTitleCase } from "@/utils/general";
+import { generateTextFooter, hardCleanUpBotMessage } from "@/utils/bot";
+import { toTitleCase } from "@/utils/general";
 import {
   previouslyTrendingTokens,
   toTrendTokens,
@@ -12,11 +8,10 @@ import {
 import moment from "moment";
 import { teleBot } from "..";
 import { errorHandler, log } from "@/utils/handlers";
-import { CHANNEL_ID } from "@/utils/env";
+import { CHANNEL_ID, TRENDING_MESSAGE } from "@/utils/env";
 import { PairData, PairsData } from "@/types";
 import { apiFetcher } from "@/utils/api";
 import { DEXSCREEN_URL } from "@/utils/constants";
-import { tokenMCTracking } from "@/vars/priceTracking";
 import { sleep } from "@/utils/time";
 
 moment.updateLocale("en", {
@@ -38,25 +33,21 @@ moment.updateLocale("en", {
   },
 });
 
-export async function sendNewTrendingMsg(
-  tokenData: PairData,
-  index: number,
-  growth?: number
-) {
+export async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   if (!CHANNEL_ID) {
     return log("Channel ID or PINNED_MSG_ID is undefined");
   }
 
-  const { baseToken, priceUsd, priceChange, txns, pairAddress, liquidity, volume, fdv, pairCreatedAt} = tokenData; // prettier-ignore
-  const { name, symbol, address: token } = baseToken;
-  const { keyboard, scanLinksText } = generateTextFooter(token);
-  const age = moment(pairCreatedAt).fromNow();
+  const { baseToken, pairAddress} = tokenData; // prettier-ignore
+  const { name, address: token } = baseToken;
+  const { keyboard } = generateTextFooter(token);
+  // const age = moment(pairCreatedAt).fromNow();
 
   const solScanLink = `https://solscan.io/token/${token}`;
-  const pairLink = `https://solscan.io/account/${pairAddress}`;
+  // const pairLink = `https://solscan.io/account/${pairAddress}`;
+  // const dexTLink = `https://www.dextools.io/app/en/solana/pair-explorer/${pairAddress}`;
   const dexSLink = `https://dexscreener.com/solana/${token}`;
   const photonLink = `https://photon-sol.tinyastro.io/en/lp/${pairAddress}`;
-  const dexTLink = `https://www.dextools.io/app/en/solana/pair-explorer/${pairAddress}`;
   const socials = [];
 
   for (const { label, url } of tokenData.info?.websites || []) {
@@ -70,68 +61,40 @@ export async function sendNewTrendingMsg(
       socials.push(`[${toTitleCase(type)}](${url})`);
     }
   }
-  const socialsText = socials.join(" \\| ") || "No links available";
+  // const socialsText = socials.join(" \\| ") || "No links available";
 
-  const shortenedPairAddress = `${pairAddress.slice(
-    0,
-    3
-  )}\\.\\.\\.${pairAddress.slice(pairAddress.length - 3, pairAddress.length)}`;
-  const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
+  // const shortenedPairAddress = `${pairAddress.slice(
+  //   0,
+  //   3
+  // )}\\.\\.\\.${pairAddress.slice(pairAddress.length - 3, pairAddress.length)}`;
+  // const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
 
-  const growthText = growth
-    ? `\n\n💹 Growth since trending \\- ${growth}%`
-    : "";
+  const telegramLink = tokenData.info?.socials?.find(
+    ({ type }) => type === "telegram"
+  )?.url;
 
-  const message = `*${hardCleanedSymbol} trending at \\#${index + 1}*
+  const tokenSocials = toTrendTokens.find(
+    ({ token: storedToken }) => storedToken === token
+  )?.socials;
 
-📌 [${hardCleanUpBotMessage(name)} \\(${hardCleanedSymbol}\\)](${solScanLink})
-📌 Pair: [${shortenedPairAddress}](${pairLink})
-⚖️ Age: ${age}
+  const url = tokenSocials || telegramLink || photonLink;
 
-💰 MC: \\$${`${formatM2Number(fdv)}`} \\| Liq: \\$${formatM2Number(
-    liquidity.usd
-  )} \\| 💲 Price: \\$${cleanUpBotMessage(parseFloat(priceUsd))}
-🚀 24h: ${formatM2Number(priceChange.h24)}% \\| V: \\$${formatM2Number(
-    volume.h24
-  )}
-📈 Buys: ${formatM2Number(txns.h24.buys)} \\| 📉 Sells: ${formatM2Number(
-    txns.h24.sells
-  )}
-📊 [Photon](${photonLink}) \\| [DexS](${dexSLink}) \\| [DexT](${dexTLink})
+  const message = `🪙 [${hardCleanUpBotMessage(
+    name
+  )}](${url}) Just Entered [Hype TRENDING](${TRENDING_MESSAGE})
+  
+Token: [${token}](${solScanLink})
+Position: [\`${index + 1}\`](${TRENDING_MESSAGE})
 
-🌐 Socials \\- ${socialsText}${growthText}
-
-🪙 Token \\- \`${token}\`
-
-${scanLinksText}`;
+📈 [Chart](${dexSLink}) \\| 🥇 [Trending](${TRENDING_MESSAGE})`;
 
   try {
-    if (growth) {
-      const { messageId } = tokenMCTracking[token];
-      await teleBot.api.editMessageText(CHANNEL_ID, messageId, message, {
-        parse_mode: "MarkdownV2",
-        // @ts-expect-error Type not found
-        disable_web_page_preview: true,
-        reply_markup: keyboard,
-      });
-    } else {
-      const channelMessage = await teleBot.api.sendMessage(
-        CHANNEL_ID,
-        message,
-        {
-          parse_mode: "MarkdownV2",
-          // @ts-expect-error Type not found
-          disable_web_page_preview: true,
-          reply_markup: keyboard,
-        }
-      );
-
-      tokenMCTracking[token] = {
-        messageId: channelMessage.message_id,
-        initialMC: fdv,
-        pastBenchmark: 30,
-      };
-    }
+    await teleBot.api.sendMessage(CHANNEL_ID, message, {
+      parse_mode: "MarkdownV2",
+      // @ts-expect-error Type not found
+      disable_web_page_preview: true,
+      reply_markup: keyboard,
+    });
   } catch (e) {
     // eslint-disable-next-line
     console.log(message);

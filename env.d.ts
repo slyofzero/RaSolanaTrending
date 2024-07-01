@@ -24,6 +24,7 @@ declare global {
       COINGECKO_API_KEY: string | undefined;
       BANNED_TOKENS: string | undefined;
       TRENDING_BUY_BOT_API: string | undefined;
+      TRENDING_MESSAGE: string | undefined;
     }
   }
 }

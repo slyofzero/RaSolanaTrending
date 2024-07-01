@@ -15,7 +15,11 @@ import {
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import { BOT_USERNAME, TRENDING_BUY_BOT_API } from "@/utils/env";
+import {
+  BOT_USERNAME,
+  TRENDING_BUY_BOT_API,
+  TRENDING_MESSAGE,
+} from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -29,6 +33,7 @@ import web3, { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { solanaConnection } from "@/rpc";
 import { syncToTrend } from "@/vars/trending";
 import { apiPoster } from "@/utils/api";
+import moment from "moment";
 
 const alphabet =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -516,12 +521,18 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
           id: hash,
         });
 
-        const confirmationText = `You have purchased a trending slot ${slot} for ${duration} hours.
-Payment received of - \`${roundUpToDecimalPlace(amountSol, 4)}\` SOL
+        //         const confirmationText = `You have purchased a trending slot ${slot} for ${duration} hours.
+        // Payment received of - \`${roundUpToDecimalPlace(amountSol, 4)}\` SOL
 
-Transaction hash for your payment is \`${hash}\`. Your token would be visible, and available to be scanned the next time the bot updates the trending message, so it may take a minute or two. In case of any doubts please reach out to the admins of the bot for any query.
+        // Transaction hash for your payment is \`${hash}\`. Your token would be visible, and available to be scanned the next time the bot updates the trending message, so it may take a minute or two. In case of any doubts please reach out to the admins of the bot for any query.
 
-Address Payment Received at - ${sentTo}`;
+        // Address Payment Received at - ${sentTo}`;
+
+        const formattedDate = moment()
+          .utc()
+          .format("ddd, DD MMM YYYY HH:mm:ss [GMT]");
+        const confirmationText = `✅ *Payment received at ${formattedDate}
+Check [Hype TRENDING](${TRENDING_MESSAGE}) in a few minutes\\!*`;
 
         const syncFunc = isTrendingPayment ? syncToTrend : syncAdvertisements;
 

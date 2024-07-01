@@ -27,6 +27,7 @@ export const {
   BANNED_TOKENS,
   TRENDING_BUY_BOT_API,
   TRENDING_PRICES,
+  TRENDING_MESSAGE,
 } = process.env;
 
 export const BOT_URL = `https://t.me/${BOT_USERNAME}`;

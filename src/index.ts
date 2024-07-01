@@ -16,7 +16,6 @@ import express, { Request, Response } from "express";
 import { syncAdmins } from "./vars/admins";
 import { unlockUnusedAccounts } from "./bot/cleanUp/accounts";
 import { checkNewTrending } from "./bot/checkNewTrending";
-import { trackTokenMC } from "./bot/trackTokenMc";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -73,7 +72,7 @@ log("Express server ready");
 
         updateTrendingMessage();
         await checkNewTrending();
-        trackTokenMC();
+        // trackTokenMC();
 
         cleanUpExpired();
       }
