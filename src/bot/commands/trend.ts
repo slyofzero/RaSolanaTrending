@@ -61,7 +61,7 @@ Expires ${expiresIn}`;
   }
 
   userState[chatId] = "toTrend";
-  const text = `To trend a token, please provide the token's address in the next message`;
+  const text = `Please enter token address.`;
   ctx.reply(text).catch((e) => errorHandler(e));
 }
 
@@ -115,23 +115,30 @@ export async function addTrendingSocial(ctx: CommandContext<Context>) {
   trendingState[chatId] = { token };
 
   userState[chatId] = "trendSocials";
-  const text = `Please pass a social link related to the token in the next message`;
+  const text = `Please enter social link.`;
   ctx.reply(text).catch((e) => errorHandler(e));
 }
 
-export async function setTrendingEmoji(ctx: CommandContext<Context>) {
-  const { id: chatId } = ctx.chat;
+export async function setTrendingEmoji(
+  ctx: CommandContext<Context> | CallbackQueryContext<Context>
+) {
+  const chatId = ctx.chat?.id;
   const link = ctx.message?.text || "";
+
+  if (!chatId) return ctx.reply("Please do /trend again");
 
   if (!isValidUrl(link)) {
     return ctx.reply("Please enter a valid URL");
   }
 
+  const data = ctx.callbackQuery?.data;
+  if (data?.split("-").at(-1) === "return") ctx.deleteMessage();
+
   trendingState[chatId] = { ...trendingState[chatId], social: link };
   delete userState[chatId];
 
   ctx.reply(
-    "Send an emoji in the next message, this emoji will be shown in the buybot messages in the trending channel."
+    "Please enter emoji that you wish to display in Hype Trending Channel's buybot"
   );
   userState[chatId] = "trendEmoji";
 }
@@ -163,13 +170,25 @@ export async function selectTrendingSlot(
   trendingState[chatId] = { ...trendingState[chatId], emoji };
   delete userState[chatId];
 
+  const top3Trending =
+    toTrendTokens.filter(({ slot }) => slot === 1).length === 3;
+  const top8Trending =
+    toTrendTokens.filter(({ slot }) => slot === 2).length === 8;
+  const top15Trending =
+    toTrendTokens.filter(({ slot }) => slot === 3).length === 15;
+
   const text =
     "❕ Select open slot or click to see the nearest potential availability time:";
-  const keyboard = new InlineKeyboard()
-    .text("🔴 Top 3 gurantee", "trendSlot-1")
-    .text("🔴 Top 8 gurantee", "trendSlot-2")
-    .row()
-    .text("🔴 Any position", "trendSlot-3");
+
+  let keyboard = new InlineKeyboard();
+  if (!top3Trending)
+    keyboard = keyboard.text("🔴 Top 3 gurantee", "trendSlot-1");
+  if (!top8Trending)
+    keyboard = keyboard.text("🔴 Top 8 gurantee", "trendSlot-2");
+  if (!top15Trending)
+    keyboard = keyboard.text("🔴 Any position", "trendSlot-3");
+
+  keyboard = keyboard.toFlowed(2);
 
   ctx.reply(text, { reply_markup: keyboard });
 }
@@ -183,6 +202,11 @@ export async function selectTrendingDuration(
   if (isNaN(slot)) return ctx.reply("Please click on the button again");
   else if (!chatId) return ctx.reply("Please do /trend again");
   else if (!TRENDING_PRICES) return ctx.reply("An error occurred");
+
+  if (!chatId) return ctx.reply("Please do /trend again");
+
+  const data = ctx.callbackQuery?.data;
+  if (data?.split("-").at(-1) === "return") ctx.deleteMessage();
 
   trendingState[chatId] = { ...trendingState[chatId], slot };
   delete userState[chatId];
@@ -207,6 +231,8 @@ export async function selectTrendingDuration(
 
     if (index % 2 !== 0) keyboard = keyboard.row();
   }
+
+  keyboard = keyboard.row().text("<< Back >>", "trendEmoji-return");
 
   ctx.reply(text, { reply_markup: keyboard });
 }
