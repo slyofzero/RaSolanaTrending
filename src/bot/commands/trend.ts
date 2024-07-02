@@ -182,9 +182,9 @@ export async function selectTrendingSlot(
 
   let keyboard = new InlineKeyboard();
   if (!top3Trending)
-    keyboard = keyboard.text("🔴 Top 3 gurantee", "trendSlot-1");
+    keyboard = keyboard.text("🔴 Top 3 guarantee", "trendSlot-1");
   if (!top8Trending)
-    keyboard = keyboard.text("🔴 Top 8 gurantee", "trendSlot-2");
+    keyboard = keyboard.text("🔴 Top 8 guarantee", "trendSlot-2");
   if (!top15Trending)
     keyboard = keyboard.text("🔴 Any position", "trendSlot-3");
 
