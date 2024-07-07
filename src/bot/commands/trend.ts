@@ -101,7 +101,7 @@ export async function addTrendingSocial(ctx: CommandContext<Context>) {
     terminalData?.data.data?.length === 0 &&
     dexSData?.data.pairs?.length === 0
   ) {
-    return ctx.reply("The address you entered has no pairs on Ton");
+    return ctx.reply("The address you entered has no pairs on Solana.");
   }
 
   const storedTokenData = toTrendTokens.find(
