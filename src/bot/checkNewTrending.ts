@@ -41,14 +41,14 @@ export async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   const { baseToken, pairAddress} = tokenData; // prettier-ignore
   const { name, address: token } = baseToken;
   const { keyboard } = generateTextFooter(token);
-  // const age = moment(pairCreatedAt).fromNow();
 
   const solScanLink = `https://solscan.io/token/${token}`;
-  // const pairLink = `https://solscan.io/account/${pairAddress}`;
-  // const dexTLink = `https://www.dextools.io/app/en/solana/pair-explorer/${pairAddress}`;
   const dexSLink = `https://dexscreener.com/solana/${token}`;
   const photonLink = `https://photon-sol.tinyastro.io/en/lp/${pairAddress}`;
   const socials = [];
+  const toTrendChat = toTrendTokens.find(
+    ({ token: storedToken }) => storedToken === token
+  )?.initiatedBy;
 
   for (const { label, url } of tokenData.info?.websites || []) {
     if (url) {
@@ -61,13 +61,6 @@ export async function sendNewTrendingMsg(tokenData: PairData, index: number) {
       socials.push(`[${toTitleCase(type)}](${url})`);
     }
   }
-  // const socialsText = socials.join(" \\| ") || "No links available";
-
-  // const shortenedPairAddress = `${pairAddress.slice(
-  //   0,
-  //   3
-  // )}\\.\\.\\.${pairAddress.slice(pairAddress.length - 3, pairAddress.length)}`;
-  // const hardCleanedSymbol = hardCleanUpBotMessage(symbol);
 
   const telegramLink = tokenData.info?.socials?.find(
     ({ type }) => type === "telegram"
@@ -95,6 +88,15 @@ Position: [\`${index + 1}\`](${TRENDING_MESSAGE})
       disable_web_page_preview: true,
       reply_markup: keyboard,
     });
+
+    if (toTrendChat) {
+      await teleBot.api.sendMessage(toTrendChat, message, {
+        parse_mode: "MarkdownV2",
+        // @ts-expect-error Type not found
+        disable_web_page_preview: true,
+        reply_markup: keyboard,
+      });
+    }
   } catch (e) {
     // eslint-disable-next-line
     console.log(message);
