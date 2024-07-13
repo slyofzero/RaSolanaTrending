@@ -1,10 +1,4 @@
-import { ethers } from "ethers";
-import {
-  AD_PRICES,
-  BANNED_TOKENS,
-  FIREBASE_PREFIX,
-  TRENDING_PRICES,
-} from "./env";
+import { AD_PRICES, FIREBASE_PREFIX, TRENDING_PRICES } from "./env";
 
 export const firebaseCollectionPrefix = `_${FIREBASE_PREFIX}`;
 export const wssHeaders = {
@@ -28,7 +22,6 @@ export const adPrices: { [key: number]: number } = JSON.parse(
 );
 
 export const transactionValidTime = 25 * 60;
-export const chatActionInterval = 4000;
 
 export const splitPaymentsWith: {
   [key: string]: { address: string; share: number };
@@ -47,9 +40,8 @@ export const tonPriceApi =
   "https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd";
 
 export const DEXSCREEN_URL = "https://dexscreener.com";
-export const residueEth = ethers.utils.parseEther("0.000035").toBigInt();
-export const referralCommisionFee = 0.1;
 export const MCLimit = 5_000_000;
-export const workchain = 0;
-export const avgGasFees = 0.025;
-export const bannedTokens = JSON.parse(BANNED_TOKENS || "[]");
+export const validEditMessageTextErrors = [
+  "MESSAGE_ID_INVALID",
+  "message to edit not found",
+];

@@ -13,6 +13,7 @@ import { PairData, PairsData } from "@/types";
 import { apiFetcher } from "@/utils/api";
 import { DEXSCREEN_URL } from "@/utils/constants";
 import { sleep } from "@/utils/time";
+import { setLastSentMessageId } from "@/vars/message";
 
 moment.updateLocale("en", {
   relativeTime: {
@@ -46,9 +47,9 @@ export async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   const dexSLink = `https://dexscreener.com/solana/${token}`;
   const photonLink = `https://photon-sol.tinyastro.io/en/lp/${pairAddress}`;
   const socials = [];
-  const toTrendChat = toTrendTokens.find(
-    ({ token: storedToken }) => storedToken === token
-  )?.initiatedBy;
+  // const toTrendChat = toTrendTokens.find(
+  //   ({ token: storedToken }) => storedToken === token
+  // )?.initiatedBy;
 
   for (const { label, url } of tokenData.info?.websites || []) {
     if (url) {
@@ -82,21 +83,23 @@ Position: [\`${index + 1}\`](${TRENDING_MESSAGE})
 📈 [Chart](${dexSLink}) \\| 🥇 [Trending](${TRENDING_MESSAGE})`;
 
   try {
-    await teleBot.api.sendMessage(CHANNEL_ID, message, {
+    const sentMessage = await teleBot.api.sendMessage(CHANNEL_ID, message, {
       parse_mode: "MarkdownV2",
       // @ts-expect-error Type not found
       disable_web_page_preview: true,
       reply_markup: keyboard,
     });
 
-    if (toTrendChat) {
-      await teleBot.api.sendMessage(toTrendChat, message, {
-        parse_mode: "MarkdownV2",
-        // @ts-expect-error Type not found
-        disable_web_page_preview: true,
-        reply_markup: keyboard,
-      });
-    }
+    setLastSentMessageId(sentMessage.message_id);
+
+    // if (toTrendChat) {
+    //   await teleBot.api.sendMessage(toTrendChat, message, {
+    //     parse_mode: "MarkdownV2",
+    //     // @ts-expect-error Type not found
+    //     disable_web_page_preview: true,
+    //     reply_markup: keyboard,
+    //   });
+    // }
   } catch (e) {
     // eslint-disable-next-line
     console.log(message);

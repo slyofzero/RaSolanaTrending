@@ -16,6 +16,7 @@ import express, { Request, Response } from "express";
 import { syncAdmins } from "./vars/admins";
 import { unlockUnusedAccounts } from "./bot/cleanUp/accounts";
 import { checkNewTrending } from "./bot/checkNewTrending";
+import { lastSentMessageId } from "./vars/message";
 
 export const teleBot = new Bot(BOT_TOKEN || "");
 log("Bot instance ready");
@@ -70,9 +71,8 @@ log("Express server ready");
         fetchedAt = getNowTimestamp();
         await processTrendingPairs(pairs);
 
-        updateTrendingMessage();
         await checkNewTrending();
-        // trackTokenMC();
+        await updateTrendingMessage();
 
         cleanUpExpired();
       }
@@ -89,10 +89,6 @@ log("Express server ready");
   });
 
   app.get("/trending", (req: Request, res: Response) => {
-    // if (req.headers.authorization !== API_AUTH_KEY) {
-    //   res.status(401).json({ message: "Unauthorized" });
-    //   return;
-    // }
     const trendingTokensAndPairs: { [key: string]: string } = {};
     for (const [token, tokenData] of trendingTokens) {
       const pair = tokenData.pairAddress;
@@ -100,6 +96,10 @@ log("Express server ready");
     }
 
     return res.status(200).json({ trendingTokens: trendingTokensAndPairs });
+  });
+
+  app.get("/getLastMessage", (req: Request, res: Response) => {
+    return res.status(200).json({ messageId: lastSentMessageId });
   });
 
   app.post("/syncTrending", async (req: Request, res: Response) => {

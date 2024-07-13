@@ -1,18 +1,22 @@
 import { CHANNEL_ID, PINNED_MSG_ID } from "@/utils/env";
 import { errorHandler, log } from "@/utils/handlers";
 import { toTrendTokens, trendingTokens } from "@/vars/trending";
-import { lastEditted, setLastEditted } from "@/vars/message";
+import { lastEditted, setLastEditted, trendingMessageId } from "@/vars/message";
 import { teleBot } from "..";
 import {
   cleanUpBotMessage,
   generateAdvertisementKeyboard,
   hardCleanUpBotMessage,
+  sendNewTrendingMessage,
 } from "@/utils/bot";
+import { validEditMessageTextErrors } from "@/utils/constants";
 
 export async function updateTrendingMessage() {
   if (!CHANNEL_ID || isNaN(PINNED_MSG_ID)) {
     return log("Channel ID or PINNED_MSG_ID is undefined");
   }
+
+  log("Updating trending message...");
 
   let trendingTokensMessage = `*SOL TRENDING* \\| [*Disclaimer*](https://t.me/c/2125443386/2)\n\n`;
   const icons = [
@@ -74,15 +78,30 @@ export async function updateTrendingMessage() {
     // ------------------------------ Advertisements ------------------------------
     const keyboard = generateAdvertisementKeyboard();
 
-    teleBot.api
-      .editMessageText(CHANNEL_ID, PINNED_MSG_ID, trendingTokensMessage, {
-        parse_mode: "MarkdownV2",
-        // @ts-expect-error Type not found
-        disable_web_page_preview: true,
-        reply_markup: keyboard,
-      })
-      .then(() => log("Updated message"))
-      .catch(async (e) => errorHandler(e));
+    try {
+      await teleBot.api.editMessageText(
+        CHANNEL_ID,
+        trendingMessageId,
+        trendingTokensMessage,
+        {
+          parse_mode: "MarkdownV2",
+          // @ts-expect-error Type not found
+          disable_web_page_preview: true,
+          reply_markup: keyboard,
+        }
+      );
+      teleBot.api.pinChatMessage(CHANNEL_ID || "", trendingMessageId);
+      log(`Updated Message ${trendingMessageId}`);
+    } catch (err) {
+      const error = err as Error;
+      errorHandler(err);
+
+      const isValidEditError = validEditMessageTextErrors.some((errors) =>
+        error.message.includes(errors)
+      );
+
+      if (isValidEditError) sendNewTrendingMessage(trendingTokensMessage);
+    }
   } catch (error) {
     errorHandler(error);
   }

@@ -1,5 +1,13 @@
 import { InlineKeyboard } from "grammy";
 import { advertisements } from "@/vars/advertisements";
+import { CHANNEL_ID } from "./env";
+import { teleBot } from "..";
+import {
+  lastSentMessageId,
+  setTrendingMessageId,
+  trendingMessageId,
+} from "@/vars/message";
+import { errorHandler, log } from "./handlers";
 
 // eslint-disable-next-line
 export function cleanUpBotMessage(text: any) {
@@ -62,4 +70,29 @@ export function generateTextFooter(token: string) {
   const scanLinksText = generateScanLinks(token);
 
   return { keyboard, scanLinksText };
+}
+
+export async function sendNewTrendingMessage(text: string) {
+  try {
+    await teleBot.api.unpinAllChatMessages(CHANNEL_ID || "");
+    const keyboard = generateAdvertisementKeyboard();
+    setTrendingMessageId(lastSentMessageId);
+
+    await teleBot.api.editMessageText(
+      CHANNEL_ID || "",
+      trendingMessageId,
+      text,
+      {
+        parse_mode: "MarkdownV2",
+        // @ts-expect-error Type not found
+        disable_web_page_preview: true,
+        reply_markup: keyboard,
+      }
+    );
+
+    log(`Updated Message ${trendingMessageId}`);
+    teleBot.api.pinChatMessage(CHANNEL_ID || "", trendingMessageId);
+  } catch (error) {
+    errorHandler(error);
+  }
 }
