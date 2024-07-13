@@ -8,10 +8,10 @@ import {
 import moment from "moment";
 import { teleBot } from "..";
 import { errorHandler, log } from "@/utils/handlers";
-import { CHANNEL_ID, TRENDING_MESSAGE } from "@/utils/env";
+import { CHANNEL_ID } from "@/utils/env";
 import { PairData, PairsData } from "@/types";
 import { apiFetcher } from "@/utils/api";
-import { DEXSCREEN_URL } from "@/utils/constants";
+import { DEXSCREEN_URL, TRENDING_MESSAGE } from "@/utils/constants";
 import { sleep } from "@/utils/time";
 import { setLastSentMessageId } from "@/vars/message";
 

@@ -1,4 +1,4 @@
-import { CHANNEL_ID, PINNED_MSG_ID } from "@/utils/env";
+import { CHANNEL_ID } from "@/utils/env";
 import { errorHandler, log } from "@/utils/handlers";
 import { toTrendTokens, trendingTokens } from "@/vars/trending";
 import { lastEditted, setLastEditted, trendingMessageId } from "@/vars/message";
@@ -12,7 +12,7 @@ import {
 import { validEditMessageTextErrors } from "@/utils/constants";
 
 export async function updateTrendingMessage() {
-  if (!CHANNEL_ID || isNaN(PINNED_MSG_ID)) {
+  if (!CHANNEL_ID) {
     return log("Channel ID or PINNED_MSG_ID is undefined");
   }
 

@@ -12,14 +12,11 @@ import {
   adPrices,
   durationExtendFees,
   transactionValidTime,
+  TRENDING_MESSAGE,
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import {
-  BOT_USERNAME,
-  TRENDING_BUY_BOT_API,
-  TRENDING_MESSAGE,
-} from "@/utils/env";
+import { BOT_USERNAME, TRENDING_BUY_BOT_API } from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";

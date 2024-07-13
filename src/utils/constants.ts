@@ -1,4 +1,10 @@
-import { AD_PRICES, FIREBASE_PREFIX, TRENDING_PRICES } from "./env";
+import { trendingMessageId } from "@/vars/message";
+import {
+  AD_PRICES,
+  FIREBASE_PREFIX,
+  TRENDING_CHANNEL_LINK,
+  TRENDING_PRICES,
+} from "./env";
 
 export const firebaseCollectionPrefix = `_${FIREBASE_PREFIX}`;
 export const wssHeaders = {
@@ -45,3 +51,4 @@ export const validEditMessageTextErrors = [
   "MESSAGE_ID_INVALID",
   "message to edit not found",
 ];
+export const TRENDING_MESSAGE = `${TRENDING_CHANNEL_LINK}/${trendingMessageId}`;
