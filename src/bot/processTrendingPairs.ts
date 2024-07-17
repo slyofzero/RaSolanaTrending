@@ -1,7 +1,7 @@
-import { PairData, PairsData, WSSPairData } from "@/types";
+import { PairData, PairsData } from "@/types";
+import { TokenPoolData } from "@/types/terminalData";
 import { TrendingTokens } from "@/types/trending";
 import { apiFetcher, syncTrendingBuyBot } from "@/utils/api";
-import { MCLimit } from "@/utils/constants";
 import { TOKEN_DATA_URL } from "@/utils/env";
 import { log } from "@/utils/handlers";
 import {
@@ -10,38 +10,63 @@ import {
   toTrendTokens,
 } from "@/vars/trending";
 
-export async function processTrendingPairs(pairs: WSSPairData[]) {
+export async function processTrendingPairs() {
   const newTopTrendingTokens: TrendingTokens = [];
 
-  let mcLimit = MCLimit;
-  while (mcLimit <= 10_000_000) {
-    for (const pair of pairs) {
-      // Only need 10 tokens at the top
-      if (newTopTrendingTokens.length >= 15) break;
+  const trendingTokens = await apiFetcher<TokenPoolData>(
+    `https://api.geckoterminal.com/api/v2/networks/solana/trending_pools?page=1`
+  );
 
-      const { baseToken, marketCap } = pair;
+  if (!trendingTokens) return;
 
-      if (marketCap > mcLimit) continue;
+  for (const tokenData of trendingTokens.data.data) {
+    if (newTopTrendingTokens.length >= 15) break;
+    const { quote_token, base_token } = tokenData.relationships;
+    quote_token.data.id;
+    const address = base_token.data.id.replace("solana_", "");
+    const pairData = await apiFetcher<PairsData>(
+      `${TOKEN_DATA_URL}/${address}`
+    );
 
-      const { address } = baseToken;
-      const pairData = await apiFetcher<PairsData>(
-        `${TOKEN_DATA_URL}/${address}`
-      );
+    const tokenAlreadyInTop15 = newTopTrendingTokens.some(
+      ([token]) => token === address
+    );
 
-      if (!pairData) continue;
+    const firstPair = pairData?.data.pairs.at(0);
+    if (!firstPair || tokenAlreadyInTop15) continue;
 
-      const tokenAlreadyInTop15 = newTopTrendingTokens.some(
-        ([token]) => token === address
-      );
-
-      const firstPair = pairData.data.pairs.at(0);
-      if (!firstPair || tokenAlreadyInTop15) continue;
-
-      newTopTrendingTokens.push([address, firstPair]);
-    }
-
-    mcLimit *= 2;
+    newTopTrendingTokens.push([address, firstPair]);
   }
+
+  // let mcLimit = MCLimit;
+  // while (mcLimit <= 10_000_000) {
+  //   for (const pair of pairs) {
+  //     // Only need 10 tokens at the top
+  //     if (newTopTrendingTokens.length >= 15) break;
+
+  //     const { baseToken, marketCap } = pair;
+
+  //     if (marketCap > mcLimit) continue;
+
+  //     const { address } = baseToken;
+  //     const pairData = await apiFetcher<PairsData>(
+  //       `${TOKEN_DATA_URL}/${address}`
+  //     );
+
+  //     if (!pairData) continue;
+
+  //     const tokenAlreadyInTop15 = newTopTrendingTokens.some(
+  //       ([token]) => token === address
+  //     );
+
+  //     const firstPair = pairData.data.pairs.at(0);
+  //     if (!firstPair || tokenAlreadyInTop15) continue;
+
+  //     newTopTrendingTokens.push([address, firstPair]);
+  //   }
+
+  //   mcLimit *= 2;
+  // }
 
   for (const { slot, token } of toTrendTokens) {
     const alreadyTrendingRank = newTopTrendingTokens.findIndex(
