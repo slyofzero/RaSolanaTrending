@@ -1,6 +1,6 @@
 import { InlineKeyboard } from "grammy";
 import { advertisements } from "@/vars/advertisements";
-import { CHANNEL_ID } from "./env";
+import { BOT_USERNAME, CHANNEL_ID } from "./env";
 import { teleBot } from "..";
 import {
   lastSentMessageId,
@@ -49,7 +49,7 @@ export function generateAdvertisementKeyboard() {
     const { text, link } = adSlot;
     keyboard = keyboard.url(text, link).row();
   } else {
-    const buttonLink = `https://t.me/RaSolanaTrendingBot?start=adBuyRequest`;
+    const buttonLink = `https://t.me/${BOT_USERNAME}?start=adBuyRequest`;
     keyboard = keyboard.url("⚡ Advertise here", buttonLink).row();
   }
 
