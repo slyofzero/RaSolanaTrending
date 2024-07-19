@@ -3,7 +3,7 @@ import { TokenPoolData } from "@/types/terminalData";
 import { TrendingTokens } from "@/types/trending";
 import { apiFetcher, syncTrendingBuyBot } from "@/utils/api";
 import { TOKEN_DATA_URL } from "@/utils/env";
-import { log } from "@/utils/handlers";
+import { errorHandler, log } from "@/utils/handlers";
 import {
   previouslyTrendingTokens,
   setTopTrendingTokens,
@@ -21,21 +21,26 @@ export async function processTrendingPairs() {
 
   for (const tokenData of trendingTokens.data.data) {
     if (newTopTrendingTokens.length >= 15) break;
-    const { quote_token, base_token } = tokenData.relationships;
-    quote_token.data.id;
-    const address = base_token.data.id.replace("solana_", "");
-    const pairData = await apiFetcher<PairsData>(
-      `${TOKEN_DATA_URL}/${address}`
-    );
 
-    const tokenAlreadyInTop15 = newTopTrendingTokens.some(
-      ([token]) => token === address
-    );
+    try {
+      const { quote_token, base_token } = tokenData.relationships;
+      quote_token.data.id;
+      const address = base_token.data.id.replace("solana_", "");
+      const pairData = await apiFetcher<PairsData>(
+        `${TOKEN_DATA_URL}/${address}`
+      );
 
-    const firstPair = pairData?.data.pairs.at(0);
-    if (!firstPair || tokenAlreadyInTop15) continue;
+      const tokenAlreadyInTop15 = newTopTrendingTokens.some(
+        ([token]) => token === address
+      );
 
-    newTopTrendingTokens.push([address, firstPair]);
+      const firstPair = pairData?.data.pairs.at(0);
+      if (!firstPair || tokenAlreadyInTop15) continue;
+
+      newTopTrendingTokens.push([address, firstPair]);
+    } catch (error) {
+      errorHandler(error);
+    }
   }
 
   // let mcLimit = MCLimit;
