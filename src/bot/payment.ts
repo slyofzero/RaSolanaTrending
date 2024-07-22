@@ -390,7 +390,7 @@ Transaction hash for your payment is \`${hash}\`. In case of any doubts please r
           .catch((e) => errorHandler(e));
 
         // Splitting payment
-        splitPayment(secretKey, balance);
+        splitPayment(secretKey);
 
         return true;
       } catch (error) {
@@ -554,7 +554,7 @@ Check [Hype TRENDING](${TRENDING_MESSAGE}) in a few minutes!*`;
           .catch((e) => errorHandler(e));
 
         // Splitting payment
-        splitPayment(secretKey, balance);
+        splitPayment(secretKey);
         // .then(() => {
         //   updateDocumentById({
         //     updates: { locked: false },

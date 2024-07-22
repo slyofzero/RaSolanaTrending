@@ -4,6 +4,7 @@ import { splitPaymentsWith } from "./constants";
 import nacl from "tweetnacl";
 import { solanaConnection } from "@/rpc";
 import web3, { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { sleep } from "./time";
 
 export function isValidSolAddress(address: string) {
   try {
@@ -55,7 +56,8 @@ export async function sendTransaction(
     const signature = await web3.sendAndConfirmTransaction(
       solanaConnection,
       transaction,
-      [account]
+      [account],
+      { maxRetries: 20 }
     );
 
     log(`Fees of ${amount} lamports sent to account ${to}`);
@@ -63,36 +65,21 @@ export async function sendTransaction(
     return signature;
   } catch (error) {
     const err = error as Error;
-    console.log(err.message);
+    log(err.message);
     log(`No transaction for ${amount} to ${to}`);
   }
 }
 
-export async function splitPayment(
-  secretKey: string,
-  totalPaymentAmount: number
-) {
+export async function splitPayment(secretKey: string) {
+  await sleep(60 * 1e3);
   try {
+    const secretKeyArray = new Uint8Array(JSON.parse(secretKey));
+    const account = web3.Keypair.fromSecretKey(secretKeyArray);
+    const balance = await solanaConnection.getBalance(account.publicKey);
     const { main } = splitPaymentsWith;
+    const mainTx = await sendTransaction(secretKey, balance, main.address);
 
-    // // ------------------------------ Calculating shares ------------------------------
-    // const devShare = Math.ceil(dev.share * totalPaymentAmount);
-    // const mainShare = totalPaymentAmount - devShare;
-
-    // // ------------------------------ Txns ------------------------------
-    // const devTx = await sendTransaction(
-    //   secretKey,
-    //   totalPaymentAmount,
-    //   main.address
-    // );
-    // if (devTx) log(`Dev share ${devShare} sent ${devTx}`);
-
-    const mainTx = await sendTransaction(
-      secretKey,
-      totalPaymentAmount,
-      main.address
-    ); // prettier-ignore
-    if (mainTx) log(`Main share ${totalPaymentAmount} sent ${mainTx}`);
+    if (mainTx) log(`Main share ${balance} sent ${mainTx}`);
   } catch (error) {
     errorHandler(error);
   }
