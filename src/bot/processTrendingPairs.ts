@@ -2,6 +2,7 @@ import { PairData, PairsData } from "@/types";
 import { TokenPoolData } from "@/types/terminalData";
 import { TrendingTokens } from "@/types/trending";
 import { apiFetcher, syncTrendingBuyBot } from "@/utils/api";
+import { bannedTokens } from "@/utils/constants";
 import { TOKEN_DATA_URL } from "@/utils/env";
 import { errorHandler, log } from "@/utils/handlers";
 import {
@@ -13,33 +14,74 @@ import {
 export async function processTrendingPairs() {
   const newTopTrendingTokens: TrendingTokens = [];
 
-  const trendingTokens = await apiFetcher<TokenPoolData>(
-    `https://api.geckoterminal.com/api/v2/networks/solana/trending_pools?page=1`
-  );
+  const getTrendingTokens = async (page: number) => {
+    page ||= 1;
+    const trendingPairs = await apiFetcher<TokenPoolData>(
+      `https://api.geckoterminal.com/api/v2/networks/solana/trending_pools?page=${page}`
+    );
 
-  if (!trendingTokens) return;
+    if (!trendingPairs) return;
 
-  for (const tokenData of trendingTokens.data.data) {
-    if (newTopTrendingTokens.length >= 15) break;
+    for (const pair of trendingPairs.data.data) {
+      if (newTopTrendingTokens.length >= 15) break;
 
-    try {
-      const { address } = tokenData.attributes;
-      const pairData = await apiFetcher<PairsData>(
-        `https://api.dexscreener.com/latest/dex/pairs/solana/${address}`
-      );
+      try {
+        const { address } = pair.attributes;
+        const pairData = await apiFetcher<PairsData>(
+          `https://api.dexscreener.com/latest/dex/pairs/solana/${address}`
+        );
 
-      const tokenAlreadyInTop15 = newTopTrendingTokens.some(
-        ([token]) => token === address
-      );
+        const tokenAlreadyInTop15 = newTopTrendingTokens.some(
+          ([token]) => token === address
+        );
 
-      const firstPair = pairData?.data.pairs.at(0);
-      if (!firstPair || tokenAlreadyInTop15) continue;
+        const firstPair = pairData?.data.pairs.at(0);
+        if (!firstPair || tokenAlreadyInTop15) continue;
 
-      newTopTrendingTokens.push([address, firstPair]);
-    } catch (error) {
-      errorHandler(error);
+        const baseToken = firstPair.baseToken.address;
+        if (bannedTokens.includes(baseToken)) continue;
+
+        newTopTrendingTokens.push([address, firstPair]);
+      } catch (error) {
+        errorHandler(error);
+      }
     }
-  }
+
+    if (newTopTrendingTokens.length < 15) await getTrendingTokens(page + 1);
+  };
+
+  await getTrendingTokens(1);
+
+  // const trendingPairs = await apiFetcher<TokenPoolData>(
+  //   `https://api.geckoterminal.com/api/v2/networks/solana/trending_pools?page=1`
+  // );
+
+  // if (!trendingPairs) return;
+
+  // for (const pair of trendingPairs.data.data) {
+  //   if (newTopTrendingTokens.length >= 15) break;
+
+  //   try {
+  //     const { address } = pair.attributes;
+  //     const pairData = await apiFetcher<PairsData>(
+  //       `https://api.dexscreener.com/latest/dex/pairs/solana/${address}`
+  //     );
+
+  //     const tokenAlreadyInTop15 = newTopTrendingTokens.some(
+  //       ([token]) => token === address
+  //     );
+
+  //     const firstPair = pairData?.data.pairs.at(0);
+  //     if (!firstPair || tokenAlreadyInTop15) continue;
+
+  //     const baseToken = firstPair.baseToken.address;
+  //     if (bannedTokens.includes(baseToken)) continue;
+
+  //     newTopTrendingTokens.push([address, firstPair]);
+  //   } catch (error) {
+  //     errorHandler(error);
+  //   }
+  // }
 
   // let mcLimit = MCLimit;
   // while (mcLimit <= 10_000_000) {

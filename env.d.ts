@@ -18,6 +18,7 @@ declare global {
       FIREBASE_PREFIX: string | undefined;
       TRENDING_CHANNEL_LINK: string | undefined;
       FIREBASE_KEY: string | undefined;
+      BANNED_TOKENS: string | undefined;
     }
   }
 }

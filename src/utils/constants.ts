@@ -1,6 +1,7 @@
 import { trendingMessageId } from "@/vars/message";
 import {
   AD_PRICES,
+  BANNED_TOKENS,
   FIREBASE_PREFIX,
   TRENDING_CHANNEL_LINK,
   TRENDING_PRICES,
@@ -52,3 +53,4 @@ export const validEditMessageTextErrors = [
   "message to edit not found",
 ];
 export const TRENDING_MESSAGE = `${TRENDING_CHANNEL_LINK}/${trendingMessageId}`;
+export const bannedTokens: string[] = JSON.parse(BANNED_TOKENS || "[]");
