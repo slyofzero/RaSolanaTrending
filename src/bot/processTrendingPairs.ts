@@ -41,7 +41,7 @@ export async function processTrendingPairs() {
         const baseToken = firstPair.baseToken.address;
         if (bannedTokens.includes(baseToken)) continue;
 
-        newTopTrendingTokens.push([address, firstPair]);
+        newTopTrendingTokens.push([baseToken, firstPair]);
       } catch (error) {
         errorHandler(error);
       }
