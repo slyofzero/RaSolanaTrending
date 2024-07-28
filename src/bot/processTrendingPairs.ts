@@ -23,11 +23,9 @@ export async function processTrendingPairs() {
     if (newTopTrendingTokens.length >= 15) break;
 
     try {
-      const { quote_token, base_token } = tokenData.relationships;
-      quote_token.data.id;
-      const address = base_token.data.id.replace("solana_", "");
+      const { address } = tokenData.attributes;
       const pairData = await apiFetcher<PairsData>(
-        `${TOKEN_DATA_URL}/${address}`
+        `https://api.dexscreener.com/latest/dex/pairs/solana/${address}`
       );
 
       const tokenAlreadyInTop15 = newTopTrendingTokens.some(
