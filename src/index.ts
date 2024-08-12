@@ -75,7 +75,7 @@ log("Express server ready");
   //   });
   // }
 
-  setInterval(unlockUnusedAccounts, 60 * 60 * 1e3);
+  setInterval(unlockUnusedAccounts, 5 * 60 * 1e3);
   // connectWebSocket();
 
   app.use(express.json());

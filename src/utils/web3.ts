@@ -64,9 +64,9 @@ export async function sendTransaction(
 
     return signature;
   } catch (error) {
-    const err = error as Error;
-    log(err.message);
     log(`No transaction for ${amount} to ${to}`);
+    errorHandler(error);
+    sendTransaction(secretKey, amount, to);
   }
 }
 
