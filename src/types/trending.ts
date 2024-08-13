@@ -22,4 +22,5 @@ export interface StoredToTrend {
   socials: string;
   emoji: string;
   gif: string;
+  owner_notified: boolean;
 }

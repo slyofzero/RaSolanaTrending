@@ -166,6 +166,7 @@ Address - \`${account}\``;
         token: token || "",
         socials: social || "",
         emoji: emoji || "",
+        owner_notified: false,
       };
     } else {
       const { text, link } = advertisementState[chatId];
@@ -518,7 +519,9 @@ Slot ${slot}, duration ${duration} hours
         const currentTimestamp = Timestamp.now();
 
         teleBot.api
-          .sendMessage(PAYMENT_LOGS_CHANNEL || "", logText)
+          .sendMessage(PAYMENT_LOGS_CHANNEL || "", logText, {
+            parse_mode: "MarkdownV2",
+          })
           .catch((e) => errorHandler(e));
 
         await updateDocumentById({

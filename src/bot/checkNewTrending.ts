@@ -2,6 +2,7 @@ import { generateTextFooter, hardCleanUpBotMessage } from "@/utils/bot";
 import { toTitleCase } from "@/utils/general";
 import {
   previouslyTrendingTokens,
+  syncToTrend,
   toTrendTokens,
   trendingTokens,
 } from "@/vars/trending";
@@ -9,11 +10,12 @@ import moment from "moment";
 import { teleBot } from "..";
 import { errorHandler, log } from "@/utils/handlers";
 import { CHANNEL_ID } from "@/utils/env";
-import { PairData, PairsData } from "@/types";
+import { PairData, PairsData, StoredToTrend } from "@/types";
 import { apiFetcher } from "@/utils/api";
 import { DEXSCREEN_URL, TRENDING_MESSAGE } from "@/utils/constants";
 import { sleep } from "@/utils/time";
 import { setLastSentMessageId } from "@/vars/message";
+import { updateDocumentById } from "@/firebase";
 
 moment.updateLocale("en", {
   relativeTime: {
@@ -47,9 +49,9 @@ export async function sendNewTrendingMsg(tokenData: PairData, index: number) {
   const dexSLink = `https://dexscreener.com/solana/${token}`;
   const photonLink = `https://photon-sol.tinyastro.io/en/lp/${pairAddress}`;
   const socials = [];
-  // const toTrendChat = toTrendTokens.find(
-  //   ({ token: storedToken }) => storedToken === token
-  // )?.initiatedBy;
+  const toTrendChat = toTrendTokens.find(
+    ({ token: storedToken }) => storedToken === token
+  );
 
   for (const { label, url } of tokenData.info?.websites || []) {
     if (url) {
@@ -92,14 +94,20 @@ Position: [\`${index + 1}\`](${TRENDING_MESSAGE})
 
     setLastSentMessageId(sentMessage.message_id);
 
-    // if (toTrendChat) {
-    //   await teleBot.api.sendMessage(toTrendChat, message, {
-    //     parse_mode: "MarkdownV2",
-    //     // @ts-expect-error Type not found
-    //     disable_web_page_preview: true,
-    //     reply_markup: keyboard,
-    //   });
-    // }
+    if (toTrendChat && !toTrendChat.owner_notified) {
+      await teleBot.api.sendMessage(toTrendChat.initiatedBy || "", message, {
+        parse_mode: "MarkdownV2",
+        // @ts-expect-error Type not found
+        disable_web_page_preview: true,
+        reply_markup: keyboard,
+      });
+
+      updateDocumentById<StoredToTrend>({
+        collectionName: "to_trend",
+        id: toTrendChat?.id || "",
+        updates: { owner_notified: true },
+      }).then(() => syncToTrend());
+    }
   } catch (e) {
     // eslint-disable-next-line
     console.log(message);

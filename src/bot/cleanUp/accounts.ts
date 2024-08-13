@@ -23,13 +23,21 @@ export async function unlockUnusedAccounts() {
         new Uint8Array(JSON.parse(decryptedSecretKey))
       );
       const balance = await solanaConnection.getBalance(account.publicKey);
-      const durationSinceLocked = getSecondsElapsed(lockedAt.seconds);
+      const durationSinceLocked = lockedAt
+        ? getSecondsElapsed(lockedAt.seconds)
+        : 999999;
       const isPaymentFinished = durationSinceLocked > transactionValidTime;
 
       if (!isPaymentFinished) continue;
 
       if (balance > 0) {
         log(`${account.publicKey.toBase58()} holds ${balance}`);
+
+        updateDocumentById({
+          updates: { locked: true, lockedAt: null },
+          collectionName: "accounts",
+          id: id || "",
+        });
 
         await sendTransaction(
           decryptedSecretKey,

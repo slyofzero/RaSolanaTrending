@@ -10,7 +10,6 @@ import {
 } from "grammy";
 import { preparePayment } from "../payment";
 import { isValidUrl } from "@/utils/general";
-import { TerminalData } from "@/types/terminal";
 import { PairsData, StoredToTrend } from "@/types";
 import { TOKEN_DATA_URL, TRENDING_PRICES } from "@/utils/env";
 import { errorHandler } from "@/utils/handlers";
@@ -87,20 +86,12 @@ export async function addTrendingSocial(ctx: CommandContext<Context>) {
     return ctx.reply("Please enter a proper token address");
   }
 
-  const terminalResponse = apiFetcher<TerminalData>(
-    `https://api.geckoterminal.com/api/v2/search/pools?query=${token}&network=ton&page=1`
-  );
-  const dexSResonse = apiFetcher<PairsData>(`${TOKEN_DATA_URL}/${token}`);
+  // const terminalResponse = apiFetcher<TerminalData>(
+  //   `https://api.geckoterminal.com/api/v2/search/pools?query=${token}&network=ton&page=1`
+  // );
+  const dexSData = await apiFetcher<PairsData>(`${TOKEN_DATA_URL}/${token}`);
 
-  const [terminalData, dexSData] = await Promise.all([
-    terminalResponse,
-    dexSResonse,
-  ]);
-
-  if (
-    terminalData?.data.data?.length === 0 &&
-    dexSData?.data.pairs?.length === 0
-  ) {
+  if (dexSData?.data.pairs?.length === 0) {
     return ctx.reply("The address you entered has no pairs on Solana.");
   }
 

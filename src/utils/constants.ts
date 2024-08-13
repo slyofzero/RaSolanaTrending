@@ -3,6 +3,7 @@ import {
   AD_PRICES,
   BANNED_TOKENS,
   FIREBASE_PREFIX,
+  MAIN_ACCOUNT,
   TRENDING_CHANNEL_LINK,
   TRENDING_PRICES,
 } from "./env";
@@ -34,7 +35,7 @@ export const splitPaymentsWith: {
   [key: string]: { address: string; share: number };
 } = {
   main: {
-    address: "8sfbNcr9demsup4Je6LkzZLraPjJWiBd7JLC9duZXiid",
+    address: MAIN_ACCOUNT || "",
     share: 1,
   },
 };

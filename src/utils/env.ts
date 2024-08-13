@@ -24,6 +24,7 @@ export const {
   FIREBASE_KEY,
   BANNED_TOKENS,
   PAYMENT_LOGS_CHANNEL,
+  MAIN_ACCOUNT,
 } = process.env;
 
 export const BOT_URL = `https://t.me/${BOT_USERNAME}`;

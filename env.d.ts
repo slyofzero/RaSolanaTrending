@@ -20,6 +20,7 @@ declare global {
       FIREBASE_KEY: string | undefined;
       BANNED_TOKENS: string | undefined;
       PAYMENT_LOGS_CHANNEL: string | undefined;
+      MAIN_ACCOUNT: string | undefined;
     }
   }
 }
