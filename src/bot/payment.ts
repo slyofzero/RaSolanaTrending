@@ -7,7 +7,7 @@ import {
 import { StoredAdvertisement, StoredExtendTrend } from "@/types";
 import { StoredAccount } from "@/types/accounts";
 import { StoredToTrend } from "@/types/trending";
-import { cleanUpBotMessage } from "@/utils/bot";
+import { cleanUpBotMessage, hardCleanUpBotMessage } from "@/utils/bot";
 import {
   adPrices,
   durationExtendFees,
@@ -16,7 +16,11 @@ import {
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
-import { BOT_USERNAME, TRENDING_BUY_BOT_API } from "@/utils/env";
+import {
+  BOT_USERNAME,
+  PAYMENT_LOGS_CHANNEL,
+  TRENDING_BUY_BOT_API,
+} from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
 import { getSecondsElapsed, sleep } from "@/utils/time";
@@ -31,6 +35,7 @@ import { solanaConnection } from "@/rpc";
 import { syncToTrend } from "@/vars/trending";
 import { apiPoster } from "@/utils/api";
 import moment from "moment";
+import { teleBot } from "..";
 
 const alphabet =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -441,7 +446,7 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
       );
     }
 
-    const { paidAt, sentTo, amount, duration, slot } = trendingPayment;
+    const { paidAt, sentTo, amount, duration, slot, token } = trendingPayment;
     const timeSpent = getSecondsElapsed(paidAt.seconds);
 
     if (timeSpent > transactionValidTime) {
@@ -496,14 +501,25 @@ export async function confirmPayment(ctx: CallbackQueryContext<Context>) {
         }
 
         const amountSol = (amount / LAMPORTS_PER_SOL).toFixed(3);
+        const accountLink = `https://solscan.io/account/${storedAccount.publicKey}#transfers`;
+        const trendingCaText = isTrendingPayment
+          ? `Trended CA : \`${token}\``
+          : "";
 
-        const logText = `${BOT_USERNAME} transaction ${hash} for ${collectionName} verified with payment of ${amountSol} SOL.\nSlot ${slot}, duration ${duration} hours`;
+        const logText = `${BOT_USERNAME} transaction \`${hash}\` for ${hardCleanUpBotMessage(
+          collectionName
+        )} verified with payment of ${cleanUpBotMessage(amountSol)}
+
+${trendingCaText}
+
+Slot ${slot}, duration ${duration} hours
+[Account](${accountLink})`;
         log(logText);
         const currentTimestamp = Timestamp.now();
 
-        // teleBot.api
-        //   .sendMessage(PAYMENT_LOGS_CHANNEL_ID || "", logText)
-        //   .catch((e) => errorHandler(e));
+        teleBot.api
+          .sendMessage(PAYMENT_LOGS_CHANNEL || "", logText)
+          .catch((e) => errorHandler(e));
 
         await updateDocumentById({
           updates: {

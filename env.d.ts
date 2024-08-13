@@ -19,6 +19,7 @@ declare global {
       TRENDING_CHANNEL_LINK: string | undefined;
       FIREBASE_KEY: string | undefined;
       BANNED_TOKENS: string | undefined;
+      PAYMENT_LOGS_CHANNEL: string | undefined;
     }
   }
 }
