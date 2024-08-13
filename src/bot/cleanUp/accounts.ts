@@ -28,14 +28,7 @@ export async function unlockUnusedAccounts() {
 
       if (!isPaymentFinished) continue;
 
-      if (balance === 0) {
-        updateDocumentById({
-          updates: { locked: false, lockedAt: null },
-          collectionName: "accounts",
-          id: id || "",
-        });
-        log(`${account.publicKey.toBase58()} unlocked`);
-      } else {
+      if (balance > 0) {
         log(`${account.publicKey.toBase58()} holds ${balance}`);
 
         await sendTransaction(
@@ -45,6 +38,13 @@ export async function unlockUnusedAccounts() {
         );
 
         log(`${account.publicKey.toBase58()} emptied`);
+      } else {
+        updateDocumentById({
+          updates: { locked: false, lockedAt: null },
+          collectionName: "accounts",
+          id: id || "",
+        });
+        log(`${account.publicKey.toBase58()} unlocked`);
       }
     } catch (error) {
       errorHandler(error);
