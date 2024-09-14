@@ -18,7 +18,7 @@ export async function updateTrendingMessage() {
 
   log("Updating trending message...");
 
-  let trendingTokensMessage = `*SOL TRENDING* \\| [*Disclaimer*](https://t.me/c/2125443386/2)\n\n`;
+  let trendingTokensMessage = `*SOL TRENDING* \\| [*Disclaimer*](https://t.me/HypeTrendingEcosystem/3)\n\n`;
   const icons = [
     "🥇",
     "🥈",
