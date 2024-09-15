@@ -30,18 +30,18 @@ export async function updateTrendingMessage() {
     "8️⃣",
     "9️⃣",
     "🔟",
-    "1️⃣1️⃣",
-    "1️⃣2️⃣",
-    "1️⃣3️⃣",
-    "1️⃣4️⃣",
-    "1️⃣5️⃣",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
   ];
 
   try {
     // ------------------------------ Trending Message ------------------------------
     for (const [index, [token, tokenData]] of trendingTokens.entries()) {
       const { baseToken, priceChange } = tokenData;
-      const { name, symbol } = baseToken;
+      const { symbol } = baseToken;
       const priceChangeh24 = priceChange.h24;
       const icon = icons[index] || "🔥";
 
@@ -59,15 +59,15 @@ export async function updateTrendingMessage() {
       // const scanUrl = `https://t.me/ttfbotbot?start=${token}`;
       // const buyUrl = `https://t.me/magnum_trade_bot?start=PHryLEnW_snipe_${token}`;
 
-      const cleanedTokenName = hardCleanUpBotMessage(name);
       const cleanedTokenSymbol = hardCleanUpBotMessage(symbol);
       const formattedPriceChange = `[${cleanUpBotMessage(
         priceChangeh24
       )}%](${photonLink})`;
 
-      const indentation = index < 3 || index === 9 ? "\n" : "";
+      const indentation =
+        (index + 1) % 5 === 0 && index != 14 ? "————————————\n" : "";
 
-      let newLine = `${icon} [${cleanedTokenName} \\| ${cleanedTokenSymbol}](${url}) \\| ${formattedPriceChange}\n${indentation}`;
+      let newLine = `${icon} \\- [*${cleanedTokenSymbol}*](${url}) \\| ${formattedPriceChange}\n${indentation}`;
       newLine = newLine.trimStart();
       trendingTokensMessage += newLine;
     }
