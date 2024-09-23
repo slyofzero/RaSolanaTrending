@@ -168,18 +168,68 @@ export async function selectTrendingSlot(
   const top15Trending =
     toTrendTokens.filter(({ slot }) => slot === 3).length === 15;
 
-  const text =
-    "❕ Select open slot or click to see the nearest potential availability time:";
+  const getNearestExpiries = () => {
+    let minExpiries = [];
+
+    for (const toSearch of [1, 2, 3]) {
+      const expiries = toTrendTokens
+        .filter(({ slot }) => slot === toSearch)
+        .map(({ expiresAt }) => expiresAt?.seconds)
+        .filter((val) => val !== undefined) as number[];
+
+      minExpiries.push(Math.min(...expiries));
+    }
+
+    minExpiries = minExpiries.map((val) =>
+      val === Infinity ? undefined : val
+    );
+
+    const timeDifferences = minExpiries.map((timestamp, index) => {
+      const [prefix, allTaken] =
+        index === 0
+          ? ["3", top3Trending]
+          : index === 1
+          ? ["8", top8Trending]
+          : ["15", top15Trending];
+
+      if (timestamp === undefined || !allTaken) {
+        return "";
+      }
+
+      const currentTime = moment(); // Current time
+      const futureTime = moment.unix(timestamp); // Convert timestamp to a moment object
+      const duration = moment.duration(futureTime.diff(currentTime)); // Calculate the difference
+
+      // Format the duration into a human-readable string
+      const trimmedDuration = duration.humanize(true).trim(); // 'in a day', 'in 2 hours', etc.
+      return `🔴 Top ${prefix} slots will be available ${trimmedDuration}`;
+    });
+
+    return timeDifferences.filter((val) => val).join("\n");
+  };
+
+  const minExpiries = getNearestExpiries();
+
+  const text = `❕ Select open slot or click to see the nearest potential availability time:
+    
+${minExpiries}`;
 
   let keyboard = new InlineKeyboard();
-  if (!top3Trending)
-    keyboard = keyboard.text("🔴 Top 3 guarantee", "trendSlot-1");
-  if (!top8Trending)
-    keyboard = keyboard.text("🔴 Top 8 guarantee", "trendSlot-2");
-  if (!top15Trending)
-    keyboard = keyboard.text("🔴 Any position", "trendSlot-3");
 
-  keyboard = keyboard.toFlowed(2);
+  keyboard = keyboard
+    .text(
+      `${top3Trending ? "🔴" : "🟢"} Top 3 guarantee`,
+      top3Trending ? "dum" : "trendSlot-1"
+    )
+    .text(
+      `${top8Trending ? "🔴" : "🟢"} Top 8 guarantee`,
+      top8Trending ? "dum" : "trendSlot-2"
+    )
+    .text(
+      `${top15Trending ? "🔴" : "🟢"} Any position`,
+      top15Trending ? "dum" : "trendSlot-3"
+    )
+    .toFlowed(2);
 
   ctx.reply(text, { reply_markup: keyboard });
 }
