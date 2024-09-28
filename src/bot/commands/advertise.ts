@@ -96,9 +96,7 @@ export function prepareAdvertisementState(ctx: CallbackQueryContext<Context>) {
   try {
     // @ts-expect-error temp
     const chatId = ctx.chat?.id || "";
-    const duration = Number(
-      ctx.callbackQuery.data.replace("adDuration-", "").split("-")
-    );
+    const duration = Number(ctx.callbackQuery?.data.split("-").at(-1));
 
     advertisementState[chatId] = {
       ...advertisementState[chatId],

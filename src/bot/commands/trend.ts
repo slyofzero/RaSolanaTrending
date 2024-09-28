@@ -281,7 +281,7 @@ export async function selectTrendingDuration(
 export function prepareTrendingState(ctx: CallbackQueryContext<Context>) {
   // @ts-expect-error temp
   const chatId = ctx.chat?.id;
-  const duration = Number(ctx.callbackQuery?.data.at(-1));
+  const duration = Number(ctx.callbackQuery?.data.split("-").at(-1));
 
   if (isNaN(duration)) return ctx.reply("Please click on the button again");
 

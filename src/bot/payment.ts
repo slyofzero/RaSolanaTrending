@@ -99,17 +99,6 @@ export async function preparePayment(ctx: CallbackQueryContext<Context>) {
       return ctx.reply(`Please do ${commandToRedo} again`);
 
     // ------------------------------ Calculating prices based on trend or ad buy ------------------------------
-    // let priceUsd = 0;
-    // if (isTrendingPayment) {
-    //   priceUsd = trendPrices[duration][slot - 1];
-    // } else {
-    //   priceUsd = adPrices[duration];
-    // }
-
-    // const ethPrice = (await apiFetcher<any>(ethPriceApi)).data.price;
-    // const priceSol = parseFloat((priceUsd / ethPrice).toFixed(8));
-
-    // ------------------------------ Calculating prices based on trend or ad buy ------------------------------
     let priceSol = 0;
 
     if (isTrendingPayment) {
