@@ -100,7 +100,7 @@ export async function updateTrendingMessage() {
         error.message.includes(errors)
       );
 
-      if (isValidEditError) sendNewTrendingMessage(trendingTokensMessage);
+      if (isValidEditError) await sendNewTrendingMessage(trendingTokensMessage);
     }
   } catch (error) {
     errorHandler(error);
