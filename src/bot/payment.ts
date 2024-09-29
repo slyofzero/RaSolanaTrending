@@ -12,7 +12,6 @@ import {
   adPrices,
   durationExtendFees,
   transactionValidTime,
-  TRENDING_MESSAGE,
   trendPrices,
 } from "@/utils/constants";
 import { decrypt, encrypt } from "@/utils/cryptography";
@@ -20,6 +19,7 @@ import {
   BOT_USERNAME,
   PAYMENT_LOGS_CHANNEL,
   TRENDING_BUY_BOT_API,
+  TRENDING_CHANNEL_LINK,
 } from "@/utils/env";
 import { roundUpToDecimalPlace } from "@/utils/general";
 import { errorHandler, log } from "@/utils/handlers";
@@ -36,6 +36,7 @@ import { syncToTrend } from "@/vars/trending";
 import { apiPoster } from "@/utils/api";
 import moment from "moment";
 import { teleBot } from "..";
+import { trendingMessageId } from "@/vars/message";
 
 const alphabet =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -526,12 +527,7 @@ Slot ${slot}, duration ${duration} hours
           id: hash,
         });
 
-        //         const confirmationText = `You have purchased a trending slot ${slot} for ${duration} hours.
-        // Payment received of - \`${roundUpToDecimalPlace(amountSol, 4)}\` SOL
-
-        // Transaction hash for your payment is \`${hash}\`. Your token would be visible, and available to be scanned the next time the bot updates the trending message, so it may take a minute or two. In case of any doubts please reach out to the admins of the bot for any query.
-
-        // Address Payment Received at - ${sentTo}`;
+        const TRENDING_MESSAGE = `${TRENDING_CHANNEL_LINK}/${trendingMessageId}`;
 
         const formattedDate = moment()
           .utc()

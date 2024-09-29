@@ -2,11 +2,7 @@ import { InlineKeyboard } from "grammy";
 import { advertisements } from "@/vars/advertisements";
 import { BOT_USERNAME, CHANNEL_ID } from "./env";
 import { teleBot } from "..";
-import {
-  lastSentMessageId,
-  setTrendingMessageId,
-  trendingMessageId,
-} from "@/vars/message";
+import { setTrendingMessageId, trendingMessageId } from "@/vars/message";
 import { errorHandler, log } from "./handlers";
 
 // eslint-disable-next-line
@@ -76,7 +72,13 @@ export async function sendNewTrendingMessage(text: string) {
   try {
     await teleBot.api.unpinAllChatMessages(CHANNEL_ID || "");
     const keyboard = generateAdvertisementKeyboard();
-    setTrendingMessageId(lastSentMessageId);
+    const newTrendingMessageId = (
+      await teleBot.api.sendMessage(
+        CHANNEL_ID || "",
+        "*SOL TRENDING* \\| [*Disclaimer*](https://t.me/HypeTrendingEcosystem/3)\n\n"
+      )
+    ).message_id;
+    setTrendingMessageId(newTrendingMessageId);
 
     await teleBot.api.editMessageText(
       CHANNEL_ID || "",
