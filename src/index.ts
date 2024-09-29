@@ -114,8 +114,8 @@ log("Express server ready");
 
   async function toRepeat() {
     log("To repeat");
-    await updateTrendingMessage();
     await processTrendingPairs();
+    await updateTrendingMessage();
     await checkNewTrending();
 
     cleanUpExpired();
