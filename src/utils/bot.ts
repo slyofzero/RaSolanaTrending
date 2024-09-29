@@ -72,17 +72,8 @@ export async function sendNewTrendingMessage(text: string) {
   try {
     await teleBot.api.unpinAllChatMessages(CHANNEL_ID || "");
     const keyboard = generateAdvertisementKeyboard();
-    const newTrendingMessageId = (
-      await teleBot.api.sendMessage(
-        CHANNEL_ID || "",
-        "*SOL TRENDING* \\| [*Disclaimer*](https://t.me/HypeTrendingEcosystem/3)\n\n"
-      )
-    ).message_id;
-    setTrendingMessageId(newTrendingMessageId);
-
-    await teleBot.api.editMessageText(
+    const newTrendingMessage = await teleBot.api.sendMessage(
       CHANNEL_ID || "",
-      trendingMessageId,
       text,
       {
         parse_mode: "MarkdownV2",
@@ -91,6 +82,7 @@ export async function sendNewTrendingMessage(text: string) {
         reply_markup: keyboard,
       }
     );
+    setTrendingMessageId(newTrendingMessage.message_id);
 
     log(`Updated Message ${trendingMessageId}`);
     teleBot.api.pinChatMessage(CHANNEL_ID || "", trendingMessageId);
